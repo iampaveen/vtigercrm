@@ -10,7 +10,6 @@
 
 include_once('config.php');
 require_once('include/logging.php');
-require_once('include/language/en_us.lang.php');
 require_once('include/database/PearDatabase.php');
 require_once('include/ComboStrings.php');
 require_once('include/ComboUtil.php');
@@ -42,13 +41,13 @@ class PopulateComboValues
 			$id = $adb->getUniqueID('vtiger_'.$tableName);
 			if($val != '')
 			{
-				$params = array($id, $val, 1, $picklist_valueid);
-				$adb->pquery("insert into vtiger_$tableName values(?,?,?,?)", $params);
+				$params = array($id, $val, 1, $picklist_valueid, $i);
+				$adb->pquery("insert into vtiger_$tableName values(?,?,?,?,?)", $params);
 			}
 			else
 			{
-				$params = array($id, '--None--', 1, $picklist_valueid);
-				$adb->pquery("insert into vtiger_$tableName values(?,?,?,?)", $params);
+				$params = array($id, '--None--', 1, $picklist_valueid, $i);
+				$adb->pquery("insert into vtiger_$tableName values(?,?,?,?,?)", $params);
 			}
 
 			//Default entries for role2picklist relation has been inserted..

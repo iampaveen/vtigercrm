@@ -24,7 +24,7 @@ require_once("modules/Users/Users.php");
 class VTCreateTodoTask extends VTTask{
 	public $executeImmediately = true;
 
-	public function getFieldNames(){return array('todo', 'description', 'sendNotification', 'time', 'date', 'status', 'priority', 'days', 'direction', 'datefield', 'sendNotification');}
+	public function getFieldNames(){return array('todo', 'description', 'sendNotification', 'time', 'date', 'status', 'priority', 'days', 'direction', 'datefield', 'sendNotification', 'assigned_user_id');}
 
 	function getAdmin(){
 		$user = Users::getActiveAdminUser();
@@ -49,14 +49,39 @@ class VTCreateTodoTask extends VTTask{
 			$baseDate = date('Y-m-d');
 		}
 		$time = explode(' ',$baseDate);
-		if(count($time) < 2) {
-			$time[] = date('H:i');
-		}
+		
 		preg_match('/\d\d\d\d-\d\d-\d\d/', $baseDate, $match);
 		$baseDate = strtotime($match[0]);
-		$date = strftime('%Y-%m-%d', $baseDate+$this->days*24*60*60*($this->directions=='Before'?-1:1));
-		$startDate = new DateTimeField($date.' '.$time[1]);
-		$date = $startDate->getDisplayDate();
+        $date = strftime('%Y-%m-%d', $baseDate+$this->days*24*60*60*(strtolower($this->direction)=='before'?-1:1));
+		
+        if($this->time) {
+            $timeWithSec = Vtiger_Time_UIType::getTimeValueWithSeconds($this->time);
+            $dbInsertDateTime = DateTimeField::convertToDBTimeZone($date.' '.$timeWithSec);
+            $time = $dbInsertDateTime->format('H:i:s');
+		} else {
+			$time = $time[1];
+		}	
+
+        // Added to check if the user/group is active
+		if(!empty($this->assigned_user_id)) {
+			$userExists = $adb->pquery('SELECT 1 FROM vtiger_users WHERE id = ? AND status = ?', array($this->assigned_user_id, 'Active'));
+			if($adb->num_rows($userExists)) {
+				$assignedUserId = vtws_getWebserviceEntityId('Users', $this->assigned_user_id);
+				$userId = $assignedUserId;
+			} else {
+				$groupExist = $adb->pquery('SELECT 1 FROM vtiger_groups WHERE groupid = ?', array($this->assigned_user_id));
+				if($adb->num_rows($groupExist)) {
+					$assignedGroupId = vtws_getWebserviceEntityId('Groups', $this->assigned_user_id);
+					$userId = $assignedGroupId;
+				}
+                else{ 
+                    if($this->assigned_user_id == 'copyParentOwner'){ 
+                        $userId = $entityData->get('assigned_user_id'); 
+                    } 
+                }
+			}
+		}
+
 		$fields = array(
 			'activitytype'=>'Task',
 			'description'=>$this->description,
@@ -64,12 +89,12 @@ class VTCreateTodoTask extends VTTask{
 			'taskpriority'=>$this->priority,
 			'taskstatus'=>$this->status,
 			'assigned_user_id'=>$userId,
-			'time_start'=> $startDate->getDisplayTime(),
+			'time_start'=> $time,
 			'sendnotification'=>($this->sendNotification!='' && $this->sendNotification!='N')?
 					true: false,
 			'date_start'=>$date,
 			'due_date'=>$date,
-			'visibility'=>'all',
+			'visibility'=>'Private',
 			'eventstatus'=>''
 		);
 		$moduleName = $entityData->getModuleName();
@@ -92,7 +117,12 @@ class VTCreateTodoTask extends VTTask{
 			}
 		}
 
-		vtws_create('Calendar', $fields, $adminUser);
+		$todo = vtws_create('Calendar', $fields, $adminUser);
+		$todoIdDetails = vtws_getIdComponents($todo['id']);
+		$entityIdDetails = vtws_getIdComponents($id);
+
+		relateEntities(CRMEntity::getInstance($moduleName), $moduleName, $entityIdDetails[1], 'Calendar', $todoIdDetails[1]);
+
 		global $current_user;
 		$current_user = $this->originalUser;
 	}

@@ -15,7 +15,8 @@ include_once('include/utils/utils.php');
  * @package vtlib
  */
 class Vtiger_Utils {
-
+    protected static $logFileName = 'vtigermodule.log';
+    
 	/**
 	 * Check if given value is a number or not
 	 * @param mixed String or Integer
@@ -69,7 +70,7 @@ class Vtiger_Utils {
 		$relativeFilePath = str_replace($rootdirpath, '', $realfilepath);
 		$filePathParts = explode('/', $relativeFilePath);
 
-		if(stripos($realfilepath, $rootdirpath) !== 0 || in_array($filePathParts[0], $unsafeDirectories)) {
+                if(stripos($realfilepath, $rootdirpath) !== 0 || in_array($filePathParts[0], $unsafeDirectories)) {
 			if($dieOnFail) {
 				die("Sorry! Attempt to access restricted file.");
 			}
@@ -149,10 +150,10 @@ class Vtiger_Utils {
 		$adb->dieOnError = false;
 
 		$tablename = Vtiger_Utils::SQLEscape($tablename);
-		$tablecheck = $adb->query("SELECT 1 FROM $tablename LIMIT 1");
+		$tablecheck = $adb->pquery("SHOW TABLES LIKE ?", array($tablename));
 
 		$tablePresent = true;
-		if(empty($tablecheck))
+		if(empty($tablecheck) || $adb->num_rows($tablecheck) === 0)
 			$tablePresent = false;
 
 		$adb->dieOnError = $old_dieOnError;
@@ -183,7 +184,7 @@ class Vtiger_Utils {
 			}
 			$sql .= $suffixTableMeta;
 		}
-		$adb->query($sql);
+		$adb->pquery($sql, array());
 		$adb->dieOnError = $org_dieOnError;	
 	}
 
@@ -221,7 +222,7 @@ class Vtiger_Utils {
 
 		if($supressdie) $adb->dieOnError = false;
 
-		$adb->query($sqlquery);
+		$adb->pquery($sqlquery, array());
 
 		$adb->dieOnError = $old_dieOnError;
 	}
@@ -233,7 +234,7 @@ class Vtiger_Utils {
 	static function CreateTableSql($tablename) {
 		global $adb;
 
-		$create_table = $adb->query("SHOW CREATE TABLE $tablename");
+		$create_table = $adb->pquery("SHOW CREATE TABLE $tablename", array());
 		$sql = decode_html($adb->query_result($create_table, 0, 1));
 		return $sql;
 	}
@@ -260,5 +261,46 @@ class Vtiger_Utils {
 		}
 		return false;
 	}
+    
+    /**
+     * funtion to log the exception messge to module.log file
+     * @global type $site_URL
+     * @param <string> $module name of the log file and It should be a alphanumeric string
+     * @param <Exception>/<string> $exception Massage show in the log ,It should be a string or Exception object 
+     * @param <array> $extra extra massages need to be displayed
+     * @param <boolean> $backtrace flag to enable or disable backtrace in log  
+     * @param <boolean> $request flag to enable or disable request in log
+     */
+    static function ModuleLog($module, $mixed, $extra = array()) {
+        if (ALLOW_MODULE_LOGGING) { 
+            global $site_URL;
+            $date = date('Y-m-d H:i:s');
+            $log = array($site_URL,$module, $date);
+            if ($mixed instanceof Exception) {
+                array_push($log, $mixed->getMessage());
+                array_push($log, $mixed->getTraceAsString());
+            } else {
+                array_push($log, $mixed);
+                array_push($log, "");
+            }
+            if (isset($_REQUEST)) {
+                array_push($log, json_encode($_REQUEST));
+            } else {
+                array_push($log, "");
+            };
+
+            if ($extra) {
+                if (is_array($extra))
+                    $extra = json_encode($extra);
+                array_push($log, $extra);
+            } else {
+                array_push($log, "");
+            }
+            $fileName =self::$logFileName;
+            $fp = fopen("logs/$fileName", 'a+');
+            fputcsv($fp, $log);
+            fclose($fp);
+        }
+    }
 }
 ?>

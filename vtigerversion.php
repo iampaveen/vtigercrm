@@ -7,9 +7,10 @@
  * Portions created by vtiger are Copyright (C) vtiger.
  * All Rights Reserved.
  ********************************************************************************/
-$patch_version = '';
+
+$patch_version = '20160714';  // -ve timestamp before release, +ve timestamp after release.
 $modified_database = '';
-$vtiger_current_version = '5.4.0';
+$vtiger_current_version = '6.5.0';
 $_SESSION['vtiger_version'] = $vtiger_current_version;
 
 ?>

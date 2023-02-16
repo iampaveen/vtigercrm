@@ -7,14 +7,23 @@
  * Portions created by vtiger are Copyright (C) vtiger.
  * All Rights Reserved.
  ************************************************************************************/
-include_once('vtlib/Vtiger/ModuleBasic.php');
 
+require_once 'includes/runtime/Cache.php';
+include_once('vtlib/Vtiger/ModuleBasic.php');
 /**
  * Provides API to work with vtiger CRM Modules
  * @package vtlib
  */
 class Vtiger_Module extends Vtiger_ModuleBasic {
 
+        /**
+	 * Function to get the Module/Tab id
+	 * @return <Number>
+	 */
+	public function getId() {
+		return $this->id;
+	}
+        
 	/**
 	 * Get unique id for related list
 	 * @access private
@@ -131,6 +140,14 @@ class Vtiger_Module extends Vtiger_ModuleBasic {
 		return Vtiger_Link::getAll($this->id);
 	}
 
+
+	/**
+	 * Get all the custom links related to this module for exporting.
+	 */
+	function getLinksForExport() {
+		return Vtiger_Link::getAllForExport($this->id);
+	}
+
 	/**
 	 * Initialize webservice setup for this module instance.
 	 */
@@ -150,19 +167,11 @@ class Vtiger_Module extends Vtiger_ModuleBasic {
 	 * @param mixed id or name of the module
 	 */
 	static function getInstance($value) {
-		global $adb;
 		$instance = false;
-
-		$query = false;
-		if(Vtiger_Utils::isNumber($value)) {
-			$query = "SELECT * FROM vtiger_tab WHERE tabid=?";
-		} else {
-			$query = "SELECT * FROM vtiger_tab WHERE name=?";
-		}
-		$result = $adb->pquery($query, Array($value));
-		if($adb->num_rows($result)) {
+		$data = Vtiger_Functions::getModuleData($value);
+		if ($data) {
 			$instance = new self();
-			$instance->initialize($adb->fetch_array($result));
+			$instance->initialize($data);
 		}
 		return $instance;
 	}
@@ -177,6 +186,7 @@ class Vtiger_Module extends Vtiger_ModuleBasic {
 		$instance = false;
 		$filepath = "modules/$modulename/$modulename.php";
 		if(Vtiger_Utils::checkFileAccessForInclusion($filepath, false)) {
+			checkFileAccessForInclusion($filepath);
 			include_once($filepath);
 			if(class_exists($modulename)) {
 				$instance = new $modulename();

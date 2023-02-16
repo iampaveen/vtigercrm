@@ -78,7 +78,7 @@ function getKeyMetrics($maxval,$calCnt)
 				$listquery = getListQuery($metriclist['module']);
 				$oCustomView = new CustomView($metriclist['module']);
 				$metricsql = $oCustomView->getModifiedCvListQuery($metriclist['id'],$listquery,$metriclist['module']);
-				$metricsql = mkCountQuery($metricsql);
+				$metricsql = Vtiger_Functions::mkCountQuery($metricsql);
 				$metricresult = $adb->query($metricsql);
 				if($metricresult)
 				{
@@ -90,7 +90,7 @@ function getKeyMetrics($maxval,$calCnt)
 				$queryGenerator = new QueryGenerator($metriclist['module'], $current_user);
 				$queryGenerator->initForCustomViewById($metriclist['id']);
 				$metricsql = $queryGenerator->getQuery();
-				$metricsql = mkCountQuery($metricsql);
+				$metricsql = Vtiger_Functions::mkCountQuery($metricsql);
 				$metricresult = $adb->query($metricsql);
 				if($metricresult)
 				{
@@ -153,6 +153,9 @@ function getMetricList()
 	}
 	$ssql .= " order by vtiger_customview.entitytype";
 	$result = $adb->pquery($ssql, $sparams);
+
+	$metriclists = array();
+
 	while($cvrow=$adb->fetch_array($result))
 	{
 		$metricslist = Array();

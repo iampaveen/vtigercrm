@@ -17,6 +17,7 @@ include_once('vtlib/Vtiger/Link.php');
 include_once('vtlib/Vtiger/Event.php');
 include_once('vtlib/Vtiger/Webservice.php');
 include_once('vtlib/Vtiger/Version.php');
+require_once 'includes/runtime/Cache.php';
 
 /**
  * Provides API to work with vtiger CRM Module
@@ -35,6 +36,8 @@ class Vtiger_ModuleBasic {
 	var $ownedby = 0; // 0 - Sharing Access Enabled, 1 - Sharing Access Disabled
 	var $tabsequence = false;
 	var $parent = false;
+	var $customized = 0;
+        var $trial = 0;
 
 	var $isentitytype = true; // Real module or an extension?
 
@@ -74,6 +77,8 @@ class Vtiger_ModuleBasic {
 		$this->ownedby = $valuemap['ownedby'];
 		$this->tabsequence = $valuemap['tabsequence'];
 		$this->parent = $valuemap['parent'];
+		$this->customized = $valuemap['customized'];
+                $this->trial = $valuemap['trial'];
 
 		$this->isentitytype = $valuemap['isentitytype'];
 
@@ -88,12 +93,10 @@ class Vtiger_ModuleBasic {
 	 * @access private
 	 */
 	function initialize2() {
-		global $adb;
-		$result = $adb->pquery("SELECT tablename,entityidfield FROM vtiger_entityname WHERE tabid=?",
-			Array($this->id));
-		if($adb->num_rows($result)) {
-			$this->basetable = $adb->query_result($result, 0, 'tablename');
-			$this->basetableid=$adb->query_result($result, 0, 'entityidfield');
+		$entitydata = Vtiger_Functions::getEntityModuleInfo($this->name);
+		if ($entitydata) {
+			$this->basetable = $entitydata['tablename'];
+			$this->basetableid=$entitydata['entityidfield'];
 		}
 	}
 
@@ -114,7 +117,7 @@ class Vtiger_ModuleBasic {
 	 */
 	function __getNextSequence() {
 		global $adb;
-		$result = $adb->query("SELECT MAX(tabsequence) AS max_tabseq FROM vtiger_tab");
+		$result = $adb->pquery("SELECT MAX(tabsequence) AS max_tabseq FROM vtiger_tab", array());
 		$maxtabseq = $adb->query_result($result, 0, 'max_tabseq');
 		return ++$maxtabseq;
 	}
@@ -183,6 +186,14 @@ class Vtiger_ModuleBasic {
 		if($this->isentitytype) {
 			Vtiger_Access::initSharing($this);
 		}
+                
+                $moduleInstance=  Vtiger_Module::getInstance($this->name);                
+                $parentTab=$this->parent;
+                
+                if(!empty($parentTab)){
+                        $menuInstance = Vtiger_Menu::getInstance($parentTab);
+			$menuInstance->addModule($moduleInstance);
+                }
 
 		self::log("Creating Module $this->name ... DONE");
 	}
@@ -296,9 +307,16 @@ class Vtiger_ModuleBasic {
 			if(!$this->entityidcolumn)$this->entityidcolumn= $this->basetableid;
 		}
 		if($this->entityidfield && $this->entityidcolumn) {
-			$adb->pquery("INSERT INTO vtiger_entityname(tabid, modulename, tablename, fieldname, entityidfield, entityidcolumn) VALUES(?,?,?,?,?,?)",
-				Array($this->id, $this->name, $fieldInstance->table, $fieldInstance->name, $this->entityidfield, $this->entityidcolumn));
-			self::log("Setting entity identifier ... DONE");
+                         $result=$adb->pquery("SELECT tabid FROM vtiger_entityname WHERE tablename=? AND tabid=?",array($fieldInstance->table,$this->id)); 
+                        if($adb->num_rows($result)==0){
+                            $adb->pquery("INSERT INTO vtiger_entityname(tabid, modulename, tablename, fieldname, entityidfield, entityidcolumn) VALUES(?,?,?,?,?,?)",
+                                    Array($this->id, $this->name, $fieldInstance->table, $fieldInstance->name, $this->entityidfield, $this->entityidcolumn));
+                            self::log("Setting entity identifier ... DONE");
+                        }else{ 
+                            $adb->pquery("UPDATE vtiger_entityname SET fieldname=?,entityidfield=?,entityidcolumn=? WHERE tablename=? AND tabid=?", 
+                               array($fieldInstance->name,$this->entityidfield,$this->entityidcolumn,$fieldInstance->table,$this->id)); 
+                           self::log("Updating entity identifier ... DONE"); 
+                        } 
 		}
 	}
 

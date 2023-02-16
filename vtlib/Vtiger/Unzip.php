@@ -41,8 +41,8 @@ class Vtiger_Unzip extends dUnzip2 {
 	 * Allows you to rename while unzipping and handle exclusions.
 	 * @access private
 	 */
-	Function unzipAllEx($targetDir=false, $includeExclude=false, $renamePaths=false, $ignoreFiles=false, 
-		$baseDir="", $applyChmod=0777){
+	Function unzipAllEx($targetDir=false, $includeExclude=false, $renamePaths=false, $ignoreFiles=false,
+		$baseDir="", $applyChmod=0755){
 
 		// We want to always maintain the structure
 		$maintainStructure = true;
@@ -61,19 +61,19 @@ class Vtiger_Unzip extends dUnzip2 {
 		 * )
 		 *
 		 * DEFAULT: If include is specified only files under the specified path will be included.
-		 * If exclude is specified folders or files will be excluded. 
+		 * If exclude is specified folders or files will be excluded.
 		 */
 		if($includeExclude === false) $includeExclude = Array();
 
 		$lista = $this->getList();
 		if(sizeof($lista)) foreach($lista as $fileName=>$trash){
 			// Should the file be ignored?
-			if($includeExclude['include'] && 
+			if($includeExclude['include'] &&
 				!$this->__checkPathInArray($fileName, $includeExclude['include'])) {
 					// Do not include something not specified in include
 					continue;
 			}
-			if($includeExclude['exclude'] && 
+			if($includeExclude['exclude'] &&
 				$this->__checkPathInArray($fileName, $includeExclude['exclude'])) {
 					// Do not include something not specified in include
 					continue;
@@ -94,10 +94,10 @@ class Vtiger_Unzip extends dUnzip2 {
 			// END
 
 			$outDN    = "$targetDir/$dirname";
-			
+
 			if(substr($dirname, 0, strlen($baseDir)) != $baseDir)
 				continue;
-			
+
 			if(!is_dir($outDN) && $maintainStructure){
 				$str = "";
 				$folders = explode("/", $dirname);
@@ -114,9 +114,23 @@ class Vtiger_Unzip extends dUnzip2 {
 			if(substr($fileName, -1, 1) == "/")
 				continue;
 
+			if (substr($fileName, -3) == '.sh') $applyChmod = 0775; // Script executable.
 			$this->unzip($fileName, "$targetDir/$dirname/".basename($fileName), $applyChmod);
 		}
 	}
-	
+
+	/**
+	 * Function checks if the file exist in the zip
+	 * @param type $fileName
+	 * @return boolean
+	 */
+	function checkFileExistsInRootFolder($fileName) {
+		$fileList = $this->getList();
+		foreach($fileList as $file => $details) {
+			if($fileName === $file)
+				return true;
+		}
+		return false;
+	}
 }
 ?>

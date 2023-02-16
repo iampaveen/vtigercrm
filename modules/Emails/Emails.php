@@ -20,15 +20,6 @@
  * Contributor(s): ______________________________________..
  ********************************************************************************/
 
-include_once('config.php');
-require_once('include/logging.php');
-require_once('include/database/PearDatabase.php');
-require_once('data/CRMEntity.php');
-require_once('modules/Contacts/Contacts.php');
-require_once('modules/Accounts/Accounts.php');
-require_once('modules/Potentials/Potentials.php');
-require_once('modules/Users/Users.php');
-
 // Email is used to store customer information.
 class Emails extends CRMEntity {
 
@@ -50,6 +41,7 @@ class Emails extends CRMEntity {
 		'Subject' => Array('activity' => 'subject'),
 		'Related to' => Array('seactivityrel' => 'parent_id'),
 		'Date Sent' => Array('activity' => 'date_start'),
+        'Time Sent' => Array('activity' => 'time_start'),
 		'Assigned To' => Array('crmentity', 'smownerid'),
 		'Access Count' => Array('email_track', 'access_count')
 	);
@@ -57,6 +49,7 @@ class Emails extends CRMEntity {
 		'Subject' => 'subject',
 		'Related to' => 'parent_id',
 		'Date Sent' => 'date_start',
+        'Time Sent' => 'time_start',
 		'Assigned To' => 'assigned_user_id',
 		'Access Count' => 'access_count'
 	);
@@ -65,7 +58,7 @@ class Emails extends CRMEntity {
 	var $sortby_fields = Array('subject', 'date_start', 'saved_toid');
 	//Added these variables which are used as default order by and sortorder in ListView
 	var $default_order_by = 'date_start';
-	var $default_sort_order = 'ASC';
+	var $default_sort_order = 'DESC';
 	// Used when enabling/disabling the mandatory fields for the module.
 	// Refers to vtiger_field.fieldname values.
 	var $mandatory_fields = Array('subject', 'assigned_user_id');
@@ -494,89 +487,130 @@ class Emails extends CRMEntity {
 	function unlinkRelationship($id, $return_module, $return_id) {
 		global $log;
 
-		$sql = 'DELETE FROM vtiger_seactivityrel WHERE activityid=?';
-		$this->db->pquery($sql, array($id));
+		$sql = 'DELETE FROM vtiger_seactivityrel WHERE activityid=? AND crmid = ?';
+		$this->db->pquery($sql, array($id, $return_id));
 
 		$sql = 'DELETE FROM vtiger_crmentityrel WHERE (crmid=? AND relmodule=? AND relcrmid=?) OR (relcrmid=? AND module=? AND crmid=?)';
 		$params = array($id, $return_module, $return_id, $id, $return_module, $return_id);
 		$this->db->pquery($sql, $params);
+
+		$this->db->pquery('UPDATE vtiger_crmentity SET modifiedtime = ? WHERE crmid = ?', array(date('y-m-d H:i:d'), $id));
 	}
 
 	public function getNonAdminAccessControlQuery($module, $user, $scope='') {
-		return " and vtiger_crmentity$scope.smownerid=$user->id ";
-	}
-
-}
-
-/** Function to get the emailids for the given ids form the request parameters
- *  It returns an array which contains the mailids and the parentidlists
- */
-function get_to_emailids($module) {global $log;$log->fatal($_REQUEST);
-	global $adb, $current_user, $log;
-	require_once 'include/Webservices/Query.php';
-	//$idlists1 = "";
-	$mailds = '';
-	$fieldids = explode(":", vtlib_purify($_REQUEST['field_lists']));
-	if($_REQUEST['idlist'] == 'all' || $_REQUEST['idlist'] == 'relatedListSelectAll'){
-		$idlist = getSelectedRecords($_REQUEST,vtlib_purify($_REQUEST['pmodule']),vtlib_purify($_REQUEST['idlist']),vtlib_purify($_REQUEST['excludedRecords']));
-	} else {
-		$idlist = explode(":", str_replace("undefined","",vtlib_purify($_REQUEST['idlist'])));
-	}
-
-	$entityids = array();
-	foreach ($idlist as $key => $id) {
-		$entityids[] = vtws_getWebserviceEntityId($module, $id);
-	}
-	$vtwsObject = VtigerWebserviceObject::fromName($adb, $module);
-	$vtwsCRMObjectMeta = new VtigerCRMObjectMeta($vtwsObject, $current_user);
-	$emailFields = $vtwsCRMObjectMeta->getEmailFields();
-
-	foreach ($emailFields as $key => $fieldname) {
-		$fieldid = $vtwsCRMObjectMeta->getFieldIdFromFieldName($fieldname);
-		if (!in_array($fieldid, $fieldids)) {
-			unset($emailFields[$key]);
-		}
-	}
-	if(empty($emailFields))
-		return false;
-	if ($module == 'Leads') {
-		$query = 'SELECT firstname,lastname,'.implode(",", $emailFields).',vtiger_leaddetails.leadid as id
-				  FROM vtiger_leaddetails
-				  INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid=vtiger_leaddetails.leadid
-				  LEFT JOIN vtiger_leadscf ON vtiger_leaddetails.leadid = vtiger_leadscf.leadid
-				  WHERE vtiger_crmentity.deleted=0 AND vtiger_leaddetails.leadid IN ('.generateQuestionMarks($idlist).')';
-	} else if ($module == 'Contacts'){
-		$query = 'SELECT firstname,lastname,'.implode(",", $emailFields).',vtiger_contactdetails.contactid as id
-				  FROM vtiger_contactdetails
-				  INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid=vtiger_contactdetails.contactid
-				  LEFT JOIN vtiger_contactscf ON vtiger_contactdetails.contactid = vtiger_contactscf.contactid
-				  WHERE vtiger_crmentity.deleted=0 AND vtiger_contactdetails.contactid IN ('.generateQuestionMarks($idlist).') AND vtiger_contactdetails.emailoptout=0';
-	} else {
-		$query = 'SELECT vtiger_account.accountname, '.implode(",", $emailFields).',vtiger_account.accountid as id FROM vtiger_account
-				   INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid=vtiger_account.accountid
-				   LEFT JOIN vtiger_accountscf ON vtiger_accountscf.accountid= vtiger_account.accountid
-				   WHERE vtiger_crmentity.deleted=0 AND vtiger_account.accountid IN ('.generateQuestionMarks($idlist).') AND vtiger_account.emailoptout=0';
-	}
-	$result = $adb->pquery($query,$idlist);
-	
-	if($adb->num_rows($result)>0){
-		while($entityvalue = $adb->fetchByAssoc($result)){
-			$vtwsid = $entityvalue['id'];
-			foreach ($emailFields as $i => $emailFieldName) {
-				if ($entityvalue[$emailFieldName] != NULL || $entityvalue[$emailFieldName] != '') {
-					$idlists .= $vtwsid . '@' . $vtwsCRMObjectMeta->getFieldIdFromFieldName($emailFieldName) . '|';
-					if ($module == 'Leads' || $module == 'Contacts') {
-						$mailids .= $entityvalue['lastname'] . " " . $entityvalue['firstname'] . "<" . $entityvalue[$emailFieldName] . ">,";
-					} else {
-						$mailids .= $entityvalue['accountname'] . "<" . $entityvalue[$emailFieldName] . ">,";
-					}
-				}
+        require('user_privileges/user_privileges_' . $user->id . '.php');
+		require('user_privileges/sharing_privileges_' . $user->id . '.php');
+		$query = ' ';
+		$tabId = getTabid($module);
+		if ($is_admin == false && $profileGlobalPermission[1] == 1 && $profileGlobalPermission[2]
+				== 1 && $defaultOrgSharingPermission[$tabId] == 3) {
+			$tableName = 'vt_tmp_u' . $user->id;
+			$sharingRuleInfoVariable = $module . '_share_read_permission';
+			$sharingRuleInfo = $sharingRuleInfoVariable;
+			$sharedTabId = null;
+			if (!empty($sharingRuleInfo) && (count($sharingRuleInfo['ROLE']) > 0 ||
+					count($sharingRuleInfo['GROUP']) > 0)) {
+				$tableName = $tableName . '_t' . $tabId;
+				$sharedTabId = $tabId;
 			}
+			$this->setupTemporaryTable($tableName, $sharedTabId, $user, $current_user_parent_role_seq, $current_user_groups);
+			$query = " INNER JOIN $tableName $tableName$scope ON $tableName$scope.id = " .
+					"vtiger_crmentity$scope.smownerid ";
+		}
+        return $query;
+	}
+
+	protected function setupTemporaryTable($tableName, $tabId, $user, $parentRole, $userGroups) {
+		$module = null;
+		if (!empty($tabId)) {
+			$module = getTabname($tabId);
+		}
+		$query = $this->getNonAdminAccessQuery($module, $user, $parentRole, $userGroups);
+		$query = "create temporary table IF NOT EXISTS $tableName(id int(11) primary key, shared int(1) default 0) ignore ".$query;
+		$db = PearDatabase::getInstance();
+		$result = $db->pquery($query, array());
+		if(is_object($result)) {
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	* Function to get the relation tables for related modules
+	* @param - $secmodule secondary module name
+	* returns the array with table names and fieldnames storing relations between module and this module
+	*/
+	function setRelationTables($secmodule) {
+		$rel_tables = array (
+				"Leads" => array("vtiger_seactivityrel" => array("activityid", "crmid"), "vtiger_activity" => "activityid"),
+				"Vendors" => array("vtiger_seactivityrel" => array("activityid", "crmid"), "vtiger_activity" => "activityid"),
+				"Contacts" => array("vtiger_seactivityrel" => array("activityid", "crmid"), "vtiger_activity" => "activityid"),
+				"Accounts" => array("vtiger_seactivityrel" => array("activityid", "crmid"), "vtiger_activity" => "activityid"),
+		);
+		return $rel_tables[$secmodule];
+	}
+
+	/*
+	* Function to get the secondary query part of a report
+	* @param - $module primary module name
+	* @param - $secmodule secondary module name
+	* returns the query string formed on fetching the related data for report for secondary module
+	*/
+	function generateReportsSecQuery($module, $secmodule, $queryPlanner){
+		$focus = CRMEntity::getInstance($module);
+		$matrix = $queryPlanner->newDependencyMatrix();
+
+		$matrix->setDependency("vtiger_crmentityEmails",array("vtiger_groupsEmails","vtiger_usersEmails","vtiger_lastModifiedByEmails"));
+		$matrix->setDependency("vtiger_activity",array("vtiger_crmentityEmails","vtiger_email_track"));
+
+		if (!$queryPlanner->requireTable('vtiger_activity', $matrix)) {
+			return '';
+		}
+
+		$query = $this->getRelationQuery($module, $secmodule, "vtiger_activity","activityid", $queryPlanner);
+		if ($queryPlanner->requireTable("vtiger_crmentityEmails")){
+		    $query .= " LEFT JOIN vtiger_crmentity AS vtiger_crmentityEmails ON vtiger_crmentityEmails.crmid=vtiger_activity.activityid and vtiger_crmentityEmails.deleted = 0";
+		}
+		if ($queryPlanner->requireTable("vtiger_groupsEmails")){
+		    $query .= " LEFT JOIN vtiger_groups AS vtiger_groupsEmails ON vtiger_groupsEmails.groupid = vtiger_crmentityEmails.smownerid";
+		}
+		if ($queryPlanner->requireTable("vtiger_usersEmails")){
+		    $query .= " LEFT JOIN vtiger_users AS vtiger_usersEmails ON vtiger_usersEmails.id = vtiger_crmentityEmails.smownerid";
+		}
+		if ($queryPlanner->requireTable("vtiger_lastModifiedByEmails")){
+		    $query .= " LEFT JOIN vtiger_users AS vtiger_lastModifiedByEmails ON vtiger_lastModifiedByEmails.id = vtiger_crmentityEmails.modifiedby and vtiger_seactivityreltmpEmails.activityid = vtiger_activity.activityid";
+		}
+        if ($queryPlanner->requireTable("vtiger_createdbyEmails")){
+			$query .= " left join vtiger_users as vtiger_createdbyEmails on vtiger_createdbyEmails.id = vtiger_crmentityEmails.smcreatorid and vtiger_seactivityreltmpEmails.activityid = vtiger_activity.activityid";
+		}
+		if ($queryPlanner->requireTable("vtiger_email_track")){
+		    $query .= " LEFT JOIN vtiger_email_track ON vtiger_email_track.mailid = vtiger_activity.activityid and vtiger_email_track.crmid = ".$focus->table_name.".".$focus->table_index;
+		}
+		return $query;
+	}
+
+	/*
+	 * Function to store the email access count value of emails in 'vtiger_email_track' table
+	 * @param - $mailid
+	 */
+	function setEmailAccessCountValue($mailid) {
+		global $adb;
+		$successIds = array();
+		$result = $adb->pquery('SELECT idlists FROM vtiger_emaildetails WHERE emailid=?', array($mailid));
+		$idlists = $adb->query_result($result,0,'idlists');
+		$idlistsArray = explode('|', $idlists);
+
+		for ($i=0; $i<(count($idlistsArray)-1); $i++) {
+			$crmid = explode("@",$idlistsArray[$i]);
+			array_push($successIds, $crmid[0]);
+		}
+		$successIds = array_unique($successIds);
+		sort($successIds);
+		for ($i=0; $i<count($successIds); $i++) {
+			$adb->pquery("INSERT INTO vtiger_email_track(crmid, mailid,  access_count) VALUES(?,?,?)", array($successIds[$i], $mailid, 0));
 		}
 	}
 
-	$return_data = array('idlists' => $idlists, 'mailds' => $mailids);
-	return $return_data;
 }
 
 //added for attach the generated pdf with email
@@ -613,6 +647,7 @@ function pdfAttach($obj, $module, $file_name, $id) {
 		$adb->pquery($query3, array($id, $current_id));
 
 		// Delete the file that was copied
+		checkFileAccessForDeletion($source_file_path);
 		unlink($source_file_path);
 
 		return true;

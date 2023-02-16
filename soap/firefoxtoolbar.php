@@ -9,10 +9,18 @@
 *
  ********************************************************************************/
 
-require_once("config.php");
-require_once('include/logging.php');
-require_once('include/nusoap/nusoap.php');
-require_once('include/database/PearDatabase.php');
+/**
+ * URL Verfication - Required to overcome Apache mis-configuration and leading to shared setup mode.
+ */
+require_once 'config.php';
+if (file_exists('config_override.php')) {
+	                include_once 'config_override.php';
+}
+
+include_once 'vtlib/Vtiger/Module.php';
+include_once 'includes/main/WebUI.php';
+
+require_once('libraries/nusoap/nusoap.php');
 
 $log = &LoggerManager::getLogger('firefoxlog');
 
@@ -835,11 +843,12 @@ function GetPicklistValues($username,$sessionid,$tablename)
 	$current_user->retrieve_entity_info($user_id,'Users');
 	require_once("include/utils/UserInfoUtil.php");
 	$roleid = fetchUserRole($user_id);
+	checkFileAccessForInclusion('user_privileges/user_privileges_'.$current_user->id.'.php');
 	require('user_privileges/user_privileges_'.$current_user->id.'.php');
 	if($is_admin == true || $profileGlobalPermission[1] == 0 || $profileGlobalPermission[2] == 0)
 	{
 		$query = "select " . $adb->sql_escape_string($tablename) . " from vtiger_". $adb->sql_escape_string($tablename);		
-			$result1 = $adb->query($query);
+			$result1 = $adb->pquery($query, array());
 		for($i=0;$i<$adb->num_rows($result1);$i++)
 		{
 			$output[$i] = decode_html($adb->query_result($result1,$i,$tablename));

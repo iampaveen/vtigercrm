@@ -41,17 +41,17 @@ class Vtiger_Link {
 	 * Initialize this instance.
 	 */
 	function initialize($valuemap) {
-		$this->tabid  = $valuemap['tabid'];
-		$this->linkid = $valuemap['linkid'];
-		$this->linktype=$valuemap['linktype'];
-		$this->linklabel=$valuemap['linklabel'];
-		$this->linkurl  =decode_html($valuemap['linkurl']);
-		$this->linkicon =decode_html($valuemap['linkicon']);
-		$this->sequence =$valuemap['sequence'];
-		$this->status   =$valuemap['status'];
-		$this->handler_path	=$valuemap['handler_path'];
-		$this->handler_class=$valuemap['handler_class'];
-		$this->handler		=$valuemap['handler'];
+		$this->tabid  = isset($valuemap['tabid']) ? $valuemap['tabid'] : null;
+		$this->linkid = isset($valuemap['linkid']) ? $valuemap['linkid'] : null;
+		$this->linktype=isset($valuemap['linktype']) ? $valuemap['linktype'] : null;
+		$this->linklabel=isset($valuemap['linklabel']) ? $valuemap['linklabel'] : null;
+		$this->linkurl  =isset($valuemap['linkurl']) ? decode_html($valuemap['linkurl']) : null;
+		$this->linkicon =isset($valuemap['linkicon']) ? decode_html($valuemap['linkicon']) : null;
+		$this->sequence =isset($valuemap['sequence']) ? $valuemap['sequence'] : null;
+		$this->status   =isset($valuemap['status']) ? $valuemap['status'] : null;
+		$this->handler_path	=isset($valuemap['handler_path']) ? $valuemap['handler_path'] : null;
+		$this->handler_class=isset($valuemap['handler_class']) ? $valuemap['handler_class'] : null;
+		$this->handler		=isset($valuemap['handler']) ? $valuemap['handler'] : null;
 	}
 
 	/**
@@ -79,7 +79,8 @@ class Vtiger_Link {
 	 * Initialize the schema (tables)
 	 */
 	static function __initSchema() {
-		if(empty(self::$__cacheSchemaChanges['vtiger_links'])) {
+		/* vtiger_links is already core product table */
+		/*if(empty(self::$__cacheSchemaChanges['vtiger_links'])) {
 			if(!Vtiger_Utils::CheckTable('vtiger_links')) {
 				Vtiger_Utils::CreateTable(
 					'vtiger_links',
@@ -90,7 +91,7 @@ class Vtiger_Link {
 					'CREATE INDEX link_tabidtype_idx on vtiger_links(tabid,linktype)');
 			}
 			self::$__cacheSchemaChanges['vtiger_links'] = true;
-		}
+		}*/
 	}
 
 	/**
@@ -111,7 +112,7 @@ class Vtiger_Link {
 			$uniqueid = self::__getUniqueId();
 			$sql = 'INSERT INTO vtiger_links (linkid,tabid,linktype,linklabel,linkurl,linkicon,'.
 			'sequence';
-			$params = Array($uniqueid, $tabid, $type, $label, $url, $iconpath, $sequence);
+			$params = Array($uniqueid, $tabid, $type, $label, $url, $iconpath, intval($sequence));
 			if(!empty($handlerInfo)) {
 				$sql .= (', handler_path, handler_class, handler');
 				$params[] = $handlerInfo['path'];
@@ -186,13 +187,14 @@ class Vtiger_Link {
 					$params = $type;
 					$permittedTabIdList = getPermittedModuleIdList();
 					if(count($permittedTabIdList) > 0 && $current_user->is_admin !== 'on') {
+                        array_push($permittedTabIdList, 0);     // Added to support one link for all modules
 						$sql .= ' and tabid IN ('.
 							Vtiger_Utils::implodestr('?', count($permittedTabIdList), ',').')';
 						$params[] = $permittedTabIdList;
 					}
 					$result = $adb->pquery($sql, Array($adb->flatten_array($params)));
 				} else {
-					$result = $adb->pquery('SELECT * FROM vtiger_links WHERE tabid=? AND linktype IN ('.
+					$result = $adb->pquery('SELECT * FROM vtiger_links WHERE (tabid=? OR tabid=0) AND linktype IN ('.
 						Vtiger_Utils::implodestr('?', count($type), ',') .')',
 							Array($tabid, $adb->flatten_array($type)));
 				}			
@@ -201,7 +203,7 @@ class Vtiger_Link {
 				if($tabid === self::IGNORE_MODULE) {
 					$result = $adb->pquery('SELECT * FROM vtiger_links WHERE linktype=?', Array($type));
 				} else {
-					$result = $adb->pquery('SELECT * FROM vtiger_links WHERE tabid=? AND linktype=?', Array($tabid, $type));				
+					$result = $adb->pquery('SELECT * FROM vtiger_links WHERE (tabid=? OR tabid=0) AND linktype=?', Array($tabid, $type));				
 				}
 			}
 		} else {
@@ -222,6 +224,7 @@ class Vtiger_Link {
 			$instance = new self();
 			$instance->initialize($row);
 			if(!empty($row['handler_path']) && isFileAccessible($row['handler_path'])) {
+				checkFileAccessForInclusion($row['handler_path']);
 				require_once $row['handler_path'];
 				$linkData = new Vtiger_LinkData($instance, $current_user);
 				$ignore = call_user_func(array($row['handler_class'], $row['handler']), $linkData);
@@ -237,10 +240,25 @@ class Vtiger_Link {
 			if($multitype) {
 				$instances[$instance->linktype][] = $instance;
 			} else {
-				$instances[] = $instance;
+				$instances[$instance->linktype] = $instance;
 			}
 		}
 		return $instances;
+	}
+
+	/**
+	 * Extract the links of module for export.
+	 */
+	static function getAllForExport($tabid) {
+		global $adb;
+		$result = $adb->pquery('SELECT * FROM vtiger_links WHERE tabid=?', array($tabid));
+		$links  = array();
+		while($row = $adb->fetch_array($result)) {
+			$instance = new self();
+			$instance->initialize($row);
+			$links[] = $instance;
+		}
+		return $links;
 	}
 
 	/**

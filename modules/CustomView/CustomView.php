@@ -8,31 +8,28 @@
  * All Rights Reserved.
  * ****************************************************************************** */
 
-global $calpath;
-global $app_strings, $mod_strings;
-global $app_list_strings;
-global $theme;
-$theme_path = "themes/" . $theme . "/";
-$image_path = $theme_path . "images/";
+require_once('data/CRMEntity.php');
 require_once('include/utils/utils.php');
 require_once 'include/Webservices/Utils.php';
 
 global $adv_filter_options;
 
-$adv_filter_options = array("e" => "" . $mod_strings['equals'] . "",
-	"n" => "" . $mod_strings['not equal to'] . "",
-	"s" => "" . $mod_strings['starts with'] . "",
-	"ew" => "" . $mod_strings['ends with'] . "",
-	"c" => "" . $mod_strings['contains'] . "",
-	"k" => "" . $mod_strings['does not contain'] . "",
-	"l" => "" . $mod_strings['less than'] . "",
-	"g" => "" . $mod_strings['greater than'] . "",
-	"m" => "" . $mod_strings['less or equal'] . "",
-	"h" => "" . $mod_strings['greater or equal'] . "",
-	"b" => "" . $mod_strings['before'] . "",
-	"a" => "" . $mod_strings['after'] . "",
-	"bw" => "" . $mod_strings['between'] . "",
-);
+if(isset($mod_strings)){
+	$adv_filter_options = array("e" => "" . $mod_strings['equals'] . "",
+		"n" => "" . $mod_strings['not equal to'] . "",
+		"s" => "" . $mod_strings['starts with'] . "",
+		"ew" => "" . $mod_strings['ends with'] . "",
+		"c" => "" . $mod_strings['contains'] . "",
+		"k" => "" . $mod_strings['does not contain'] . "",
+		"l" => "" . $mod_strings['less than'] . "",
+		"g" => "" . $mod_strings['greater than'] . "",
+		"m" => "" . $mod_strings['less or equal'] . "",
+		"h" => "" . $mod_strings['greater or equal'] . "",
+		"b" => "" . $mod_strings['before'] . "",
+		"a" => "" . $mod_strings['after'] . "",
+		"bw" => "" . $mod_strings['between'] . "",
+	);
+}
 
 class CustomView extends CRMEntity {
 
@@ -360,13 +357,8 @@ class CustomView extends CRMEntity {
 				//displayed Correctly in Custom view Advance Filter.
 				$fieldtypeofdata = ChangeTypeOfData_Filter($fieldtablename, $fieldcolname, $fieldtypeofdata);
 			}
-			if ($fieldlabel == "Related To") {
-				$fieldlabel = "Related to";
-			}
 			if ($fieldlabel == "Start Date & Time") {
 				$fieldlabel = "Start Date";
-				if ($module == 'Calendar' && $block == 19)
-					$module_columnlist['vtiger_activity:time_start::Calendar_Start_Time:I'] = 'Start Time';
 			}
 			$fieldlabel1 = str_replace(" ", "_", $fieldlabel);
 			$optionvalue = $fieldtablename . ":" . $fieldcolname . ":" . $fieldname . ":" . $module . "_" .
@@ -493,6 +485,19 @@ class CustomView extends CRMEntity {
 		return $stdcriteria_list;
 	}
 
+    /**
+     *  Function which will give condition list for date fields
+     * @return array of std filter conditions
+     */
+    function getStdFilterConditions() {
+        return Array("custom","prevfy" ,"thisfy" ,"nextfy","prevfq",
+			"thisfq","nextfq","yesterday","today","tomorrow",
+			"lastweek","thisweek","nextweek","lastmonth","thismonth",
+			"nextmonth","last7days","last30days","last60days","last90days",
+			"last120days","next30days","next60days","next90days","next120days",
+		);
+    }
+
 	/** to get the standard filter criteria
 	 * @param $selcriteria :: Type String (optional)
 	 * @returns  $filter Array in the following format
@@ -569,12 +574,12 @@ class CustomView extends CRMEntity {
 
 		$lastmonth0 = date("Y-m-d", mktime(0, 0, 0, date("m") - 1, "01", date("Y")));
 		$lastMonthStartDateTime = new DateTimeField($lastmonth0 . ' ' . date('H:i:s'));
-		$lastmonth1 = date("Y-m-t", strtotime("-1 Month"));
+		$lastmonth1 = date("Y-m-t", strtotime("last day of previous month"));
 		$lastMonthEndDateTime = new DateTimeField($lastmonth1 . ' ' . date('H:i:s'));
 
 		$nextmonth0 = date("Y-m-d", mktime(0, 0, 0, date("m") + 1, "01", date("Y")));
 		$nextMonthStartDateTime = new DateTimeField($nextmonth0 . ' ' . date('H:i:s'));
-		$nextmonth1 = date("Y-m-t", strtotime("+1 Month"));
+		$nextmonth1 = date("Y-m-t", strtotime("last day of next month"));
 		$nextMonthEndDateTime = new DateTimeField($nextmonth1 . ' ' . date('H:i:s'));
 
 		$lastweek0 = date("Y-m-d", strtotime("-2 week Sunday"));
@@ -837,29 +842,32 @@ class CustomView extends CRMEntity {
 
 		$result = $adb->pquery($sSQL, array($cvid));
 		$stdfilterrow = $adb->fetch_array($result);
+        return $this->resolveDateFilterValue($stdfilterrow);
+	}
 
-		$stdfilterlist = array();
-		$stdfilterlist["columnname"] = $stdfilterrow["columnname"];
-		$stdfilterlist["stdfilter"] = $stdfilterrow["stdfilter"];
+    function resolveDateFilterValue ($dateFilterRow) {
+        $stdfilterlist = array();
+		$stdfilterlist["columnname"] = $dateFilterRow["columnname"];
+		$stdfilterlist["stdfilter"] = $dateFilterRow["stdfilter"];
 
-		if ($stdfilterrow["stdfilter"] == "custom" || $stdfilterrow["stdfilter"] == "") {
-			if ($stdfilterrow["startdate"] != "0000-00-00" && $stdfilterrow["startdate"] != "") {
-				$startDateTime = new DateTimeField($stdfilterrow["startdate"] . ' ' . date('H:i:s'));
+		if ($dateFilterRow["stdfilter"] == "custom" || $dateFilterRow["stdfilter"] == "" || $dateFilterRow["stdfilter"] == "e" || $dateFilterRow["stdfilter"] == "n") {
+			if ($dateFilterRow["startdate"] != "0000-00-00" && $dateFilterRow["startdate"] != "") {
+				$startDateTime = new DateTimeField($dateFilterRow["startdate"] . ' ' . date('H:i:s'));
 				$stdfilterlist["startdate"] = $startDateTime->getDisplayDate();
 			}
-			if ($stdfilterrow["enddate"] != "0000-00-00" && $stdfilterrow["enddate"] != "") {
-				$endDateTime = new DateTimeField($stdfilterrow["enddate"] . ' ' . date('H:i:s'));
+			if ($dateFilterRow["enddate"] != "0000-00-00" && $dateFilterRow["enddate"] != "") {
+				$endDateTime = new DateTimeField($dateFilterRow["enddate"] . ' ' . date('H:i:s'));
 				$stdfilterlist["enddate"] = $endDateTime->getDisplayDate();
 			}
 		} else { //if it is not custom get the date according to the selected duration
-			$datefilter = $this->getDateforStdFilterBytype($stdfilterrow["stdfilter"]);
+			$datefilter = $this->getDateforStdFilterBytype($dateFilterRow["stdfilter"]);
 			$startDateTime = new DateTimeField($datefilter[0] . ' ' . date('H:i:s'));
 			$stdfilterlist["startdate"] = $startDateTime->getDisplayDate();
 			$endDateTime = new DateTimeField($datefilter[1] . ' ' . date('H:i:s'));
 			$stdfilterlist["enddate"] = $endDateTime->getDisplayDate();
 		}
 		return $stdfilterlist;
-	}
+    }
 
 	/** to get the Advanced filter for the given customview Id
 	 * @param $cvid :: Type Integer
@@ -903,9 +911,22 @@ class CustomView extends CRMEntity {
 					$val = Array();
 					for ($x = 0; $x < count($temp_val); $x++) {
 						if ($col[4] == 'D') {
+                            /** while inserting in db for due_date it was taking date and time values also as it is
+                             * date time field. We only need to take date from that value
+                             */
+                            if($col[0] == "vtiger_activity" && $col[1] == "due_date" ){
+                                $values = explode(' ', $temp_val[$x]);
+                                $temp_val[$x] = $values[0];
+                            }
 							$date = new DateTimeField(trim($temp_val[$x]));
 							$val[$x] = $date->getDisplayDate();
 						} elseif ($col[4] == 'DT') {
+							$comparator = array('e','n','b','a');
+							if(in_array($criteria['comparator'], $comparator)) {
+								$originalValue = $temp_val[$x];
+								$dateTime = explode(' ',$originalValue);
+								$temp_val[$x] = $dateTime[0];
+							}
 							$date = new DateTimeField(trim($temp_val[$x]));
 							$val[$x] = $date->getDisplayDateTimeValue();
 						} else {
@@ -1150,6 +1171,9 @@ class CustomView extends CRMEntity {
 					}
 					elseif ($comparator == 'bw' && count($valuearray) == 2) {
 						$advfiltersql = "(" . $columns[0] . "." . $columns[1] . " between '" . getValidDBInsertDateTimeValue(trim($valuearray[0]), $datatype) . "' and '" . getValidDBInsertDateTimeValue(trim($valuearray[1]), $datatype) . "')";
+					}
+					elseif ($comparator == 'y') {
+						$advfiltersql = sprintf("(%s.%s IS NULL OR %s.%s = '')", $columns[0], $columns[1], $columns[0], $columns[1]);
 					} else {
 						//Added for getting vtiger_activity Status -Jaguar
 						if ($this->customviewmodule == "Calendar" && ($columns[1] == "status" || $columns[1] == "eventstatus")) {
@@ -1496,8 +1520,13 @@ class CustomView extends CRMEntity {
 	 *             $datevalue = Array(0=>$startdate,1=>$enddate)
 	 */
 	function getDateforStdFilterBytype($type) {
+        $currentUserModel = Users_Record_Model::getCurrentUserModel();
+        $userPeferredDayOfTheWeek = $currentUserModel->get('dayoftheweek');
+
 		$thisyear = date("Y");
 		$today = date("Y-m-d", mktime(0, 0, 0, date("m"), date("d"), date("Y")));
+        $todayName =  date('l', strtotime( $today));
+
 		$tomorrow = date("Y-m-d", mktime(0, 0, 0, date("m"), date("d") + 1, date("Y")));
 		$yesterday = date("Y-m-d", mktime(0, 0, 0, date("m"), date("d") - 1, date("Y")));
 
@@ -1508,14 +1537,29 @@ class CustomView extends CRMEntity {
 		$nextmonth0 = date("Y-m-d", mktime(0, 0, 0, date("m") + 1, "01", date("Y")));
 		$nextmonth1 = date("Y-m-t", strtotime("+1 Month"));
 
-		$lastweek0 = date("Y-m-d", strtotime("-2 week Sunday"));
-		$lastweek1 = date("Y-m-d", strtotime("-1 week Saturday"));
+          // (Last Week) If Today is "Sunday" then "-2 week Sunday" will give before last week Sunday date
+        if($todayName == $userPeferredDayOfTheWeek)
+            $lastweek0 = date("Y-m-d",strtotime("-1 week $userPeferredDayOfTheWeek"));
+        else
+            $lastweek0 = date("Y-m-d", strtotime("-2 week $userPeferredDayOfTheWeek"));
+        $prvDay = date('l',  strtotime(date('Y-m-d', strtotime('-1 day', strtotime($lastweek0)))));
+        $lastweek1 = date("Y-m-d", strtotime("-1 week $prvDay"));
 
-		$thisweek0 = date("Y-m-d", strtotime("-1 week Sunday"));
-		$thisweek1 = date("Y-m-d", strtotime("this Saturday"));
+        // (This Week) If Today is "Sunday" then "-1 week Sunday" will give last week Sunday date
+        if($todayName == $userPeferredDayOfTheWeek)
+            $thisweek0 = date("Y-m-d",strtotime("-0 week $userPeferredDayOfTheWeek"));
+        else
+            $thisweek0 = date("Y-m-d", strtotime("-1 week $userPeferredDayOfTheWeek"));
+        $prvDay = date('l',  strtotime(date('Y-m-d', strtotime('-1 day', strtotime($thisweek0)))));
+		$thisweek1 = date("Y-m-d", strtotime("this $prvDay"));
 
-		$nextweek0 = date("Y-m-d", strtotime("this Sunday"));
-		$nextweek1 = date("Y-m-d", strtotime("+1 week Saturday"));
+         // (Next Week) If Today is "Sunday" then "this Sunday" will give Today's date
+		if($todayName == $userPeferredDayOfTheWeek)
+            $nextweek0 = date("Y-m-d",strtotime("+1 week $userPeferredDayOfTheWeek"));
+        else
+            $nextweek0 = date("Y-m-d", strtotime("this $userPeferredDayOfTheWeek"));
+        $prvDay = date('l',  strtotime(date('Y-m-d', strtotime('-1 day', strtotime($nextweek0)))));
+		$nextweek1 = date("Y-m-d", strtotime("+1 week $prvDay"));
 
 		$next7days = date("Y-m-d", mktime(0, 0, 0, date("m"), date("d") + 6, date("Y")));
 		$next30days = date("Y-m-d", mktime(0, 0, 0, date("m"), date("d") + 29, date("Y")));
@@ -1550,7 +1594,7 @@ class CustomView extends CRMEntity {
 			$cFq1 = date("Y-m-d", mktime(0, 0, 0, "08", "31", date("Y")));
 			$nFq = date("Y-m-d", mktime(0, 0, 0, "09", "01", date("Y")));
 			$nFq1 = date("Y-m-d", mktime(0, 0, 0, "12", "31", date("Y")));
-		} else {
+        } else {
 			$nFq = date("Y-m-d", mktime(0, 0, 0, "01", "01", date("Y") + 1));
 			$nFq1 = date("Y-m-d", mktime(0, 0, 0, "04", "30", date("Y") + 1));
 			$pFq = date("Y-m-d", mktime(0, 0, 0, "05", "01", date("Y")));
@@ -1778,9 +1822,7 @@ class CustomView extends CRMEntity {
 
 		// Tabid mapped to the list of block labels to be skipped for that tab.
 		$skipBlocksList = array(
-			getTabid('Contacts') => array('LBL_IMAGE_INFORMATION'),
 			getTabid('HelpDesk') => array('LBL_COMMENTS'),
-			getTabid('Products') => array('LBL_IMAGE_INFORMATION'),
 			getTabid('Faq') => array('LBL_COMMENT_INFORMATION'),
 			getTabid('Quotes') => array('LBL_RELATED_PRODUCTS'),
 			getTabid('PurchaseOrder') => array('LBL_RELATED_PRODUCTS'),
@@ -1788,7 +1830,7 @@ class CustomView extends CRMEntity {
 			getTabid('Invoice') => array('LBL_RELATED_PRODUCTS')
 		);
 
-		$Sql = "select distinct block,vtiger_field.tabid,name,blocklabel from vtiger_field inner join vtiger_blocks on vtiger_blocks.blockid=vtiger_field.block inner join vtiger_tab on vtiger_tab.tabid=vtiger_field.tabid where displaytype != 3 and vtiger_tab.name in (" . generateQuestionMarks($modules_list) . ") and vtiger_field.presence in (0,2) order by block";
+		$Sql = "select distinct block,vtiger_field.tabid,name,blocklabel from vtiger_field inner join vtiger_blocks on vtiger_blocks.blockid=vtiger_field.block inner join vtiger_tab on vtiger_tab.tabid=vtiger_field.tabid where  vtiger_tab.name in (" . generateQuestionMarks($modules_list) . ") and vtiger_field.presence in (0,2) order by block";
 		$result = $adb->pquery($Sql, array($modules_list));
 		if ($module == "Calendar','Events")
 			$module = "Calendar";
@@ -1857,11 +1899,7 @@ class CustomView extends CRMEntity {
 
 				if ($status == CV_STATUS_DEFAULT) {
 					$log->debug("Entering when status=0");
-					if ($action == 'ListView' || $action == $module . "Ajax" || $action == 'index' || $action == 'DetailView') {
-						$permission = "yes";
-					}
-					else
-						$permission = "no";
+					$permission = "yes";
 				}
 				elseif ($is_admin) {
 					$permission = 'yes';
@@ -1871,11 +1909,7 @@ class CustomView extends CRMEntity {
 						$permission = "yes";
 					} elseif ($status == CV_STATUS_PUBLIC) {
 						$log->debug("Entering when status=3");
-						if ($action == 'ListView' || $action == $module . "Ajax" || $action == 'index' || $action == 'DetailView') {
-							$permission = "yes";
-						}
-						else
-							$permission = "no";
+						$permission = "yes";
 					}
 					elseif ($status == CV_STATUS_PRIVATE || $status == CV_STATUS_PENDING) {
 						$log->debug("Entering when status=1 or 2");

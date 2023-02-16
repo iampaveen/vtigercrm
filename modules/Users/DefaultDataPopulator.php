@@ -394,10 +394,10 @@ class DefaultDataPopulator extends CRMEntity {
 
 		//entry to vtiger_field to maintain account,contact,lead relationships
 
-		$this->db->query("INSERT INTO vtiger_field(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel, readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata, quickcreate, quickcreatesequence, info_type, masseditable) VALUES (" . getTabid('Contacts') . "," . $this->db->getUniqueID('vtiger_field') . ", 'campaignrelstatus', 'vtiger_campaignrelstatus', 1, '16', 'campaignrelstatus', 'Status', 1, 0, 0, 100, 1, NULL, 1, 'V~O', 1, NULL, 'BAS', 0)");
-		$this->db->query("INSERT INTO vtiger_field(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel, readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata, quickcreate, quickcreatesequence, info_type, masseditable) VALUES (" . getTabid('Accounts') . "," . $this->db->getUniqueID('vtiger_field') . ", 'campaignrelstatus', 'vtiger_campaignrelstatus', 1, '16', 'campaignrelstatus', 'Status', 1, 0, 0, 100, 1, NULL, 1, 'V~O', 1, NULL, 'BAS', 0)");
-		$this->db->query("INSERT INTO vtiger_field(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel, readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata, quickcreate, quickcreatesequence, info_type, masseditable) VALUES (" . getTabid('Leads') . "," . $this->db->getUniqueID('vtiger_field') . ", 'campaignrelstatus', 'vtiger_campaignrelstatus', 1, '16', 'campaignrelstatus', 'Status', 1, 0, 0, 100, 1, NULL, 1, 'V~O', 1, NULL, 'BAS', 0)");
-		$this->db->query("INSERT INTO vtiger_field(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel, readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata, quickcreate, quickcreatesequence, info_type, masseditable) VALUES (" . getTabid('Campaigns') . "," . $this->db->getUniqueID('vtiger_field') . ", 'campaignrelstatus', 'vtiger_campaignrelstatus', 1, '16', 'campaignrelstatus', 'Status', 1, 0, 0, 100, 1, NULL, 1, 'V~O', 1, NULL, 'BAS', 0)");
+		$this->db->query("INSERT INTO vtiger_field(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel, readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata, quickcreate, quickcreatesequence, info_type, masseditable) VALUES (" . getTabid('Contacts') . "," . $this->db->getUniqueID('vtiger_field') . ", 'campaignrelstatus', 'vtiger_campaignrelstatus', 1, '16', 'campaignrelstatus', 'Campaign Status', 1, 0, 0, 100, 1, NULL, 1, 'V~O', 1, NULL, 'BAS', 0)");
+		$this->db->query("INSERT INTO vtiger_field(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel, readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata, quickcreate, quickcreatesequence, info_type, masseditable) VALUES (" . getTabid('Accounts') . "," . $this->db->getUniqueID('vtiger_field') . ", 'campaignrelstatus', 'vtiger_campaignrelstatus', 1, '16', 'campaignrelstatus', 'Campaign Status', 1, 0, 0, 100, 1, NULL, 1, 'V~O', 1, NULL, 'BAS', 0)");
+		$this->db->query("INSERT INTO vtiger_field(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel, readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata, quickcreate, quickcreatesequence, info_type, masseditable) VALUES (" . getTabid('Leads') . "," . $this->db->getUniqueID('vtiger_field') . ", 'campaignrelstatus', 'vtiger_campaignrelstatus', 1, '16', 'campaignrelstatus', 'Campaign Status', 1, 0, 0, 100, 1, NULL, 1, 'V~O', 1, NULL, 'BAS', 0)");
+		$this->db->query("INSERT INTO vtiger_field(tabid, fieldid, columnname, tablename, generatedtype, uitype, fieldname, fieldlabel, readonly, presence, defaultvalue, maximumlength, sequence, block, displaytype, typeofdata, quickcreate, quickcreatesequence, info_type, masseditable) VALUES (" . getTabid('Campaigns') . "," . $this->db->getUniqueID('vtiger_field') . ", 'campaignrelstatus', 'vtiger_campaignrelstatus', 1, '16', 'campaignrelstatus', 'Campaign Status', 1, 0, 0, 100, 1, NULL, 1, 'V~O', 1, NULL, 'BAS', 0)");
 		//Campaign entries end
 		//Ticket Details -- START
 		//Block25 -- Start
@@ -415,7 +415,6 @@ class DefaultDataPopulator extends CRMEntity {
 		$this->db->query("insert into vtiger_field values (13," . $this->db->getUniqueID("vtiger_field") . ",'days','vtiger_troubletickets',1,'1','days','Days',1,2,'',100,10,25,1,'I~O',1,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (13," . $this->db->getUniqueID("vtiger_field") . ",'createdtime','vtiger_crmentity',1,'70','createdtime','Created Time',1,0,'',100,9,25,2,'DT~O',3,null,'BAS',0)");
 		$this->db->query("insert into vtiger_field values (13," . $this->db->getUniqueID("vtiger_field") . ",'modifiedtime','vtiger_crmentity',1,'70','modifiedtime','Modified Time',1,0,'',100,12,25,2,'DT~O',3,null,'BAS',0)");
-		$this->db->query("insert into vtiger_field values (13," . $this->db->getUniqueID("vtiger_field") . ",'from_portal','vtiger_troubletickets',1,'56','from_portal','From Portal',1,0,'',100,13,25,3,'C~O',3,null,'BAS',0)");
 		$this->db->query("insert into vtiger_field values (13," . $this->db->getUniqueID("vtiger_field") . ",'modifiedby','vtiger_crmentity',1,'52','modifiedby','Last Modified By',1,0,'',100,16,25,3,'V~O',3,null,'BAS',0)");
 
 		$this->db->query("insert into vtiger_field values (13," . $this->db->getUniqueID("vtiger_field") . ",'title','vtiger_troubletickets',1,'22','ticket_title','Title',1,0,'',100,1,25,1,'V~M',0,1,'BAS',1)");
@@ -431,7 +430,7 @@ class DefaultDataPopulator extends CRMEntity {
 		$this->db->query("insert into vtiger_field values (14," . $this->db->getUniqueID("vtiger_field") . ",'productname','vtiger_products',1,'2','productname','Product Name',1,0,'',100,1,31,1,'V~M',0,1,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (14," . $this->db->getUniqueID("vtiger_field") . ",'product_no','vtiger_products',1,'4','product_no','Product No',1,0,'',100,2,31,1,'V~O',3,null,'BAS',0)");
 		$this->db->query("insert into vtiger_field values (14," . $this->db->getUniqueID("vtiger_field") . ",'productcode','vtiger_products',1,'1','productcode','Part Number',1,2,'',100,4,31,1,'V~O',1,null,'BAS',1)");
-		$this->db->query("insert into vtiger_field values (14," . $this->db->getUniqueID("vtiger_field") . ",'discontinued','vtiger_products',1,'56','discontinued','Product Active',1,2,'',100,3,31,1,'V~O',2,2,'BAS',1)");
+		$this->db->query("insert into vtiger_field values (14," . $this->db->getUniqueID("vtiger_field") . ",'discontinued','vtiger_products',1,'56','discontinued','Product Active',1,2,'1',100,3,31,1,'V~O',2,2,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (14," . $this->db->getUniqueID("vtiger_field") . ",'manufacturer','vtiger_products',1,'15','manufacturer','Manufacturer',1,2,'',100,6,31,1,'V~O',1,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (14," . $this->db->getUniqueID("vtiger_field") . ",'productcategory','vtiger_products',1,'15','productcategory','Product Category',1,2,'',100,6,31,1,'V~O',1,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (14," . $this->db->getUniqueID("vtiger_field") . ",'sales_start_date','vtiger_products',1,'5','sales_start_date','Sales Start Date',1,2,'',100,5,31,1,'D~O',1,null,'BAS',1)");
@@ -478,19 +477,19 @@ class DefaultDataPopulator extends CRMEntity {
 		//Documents Details -- START
 		//Block17 -- Start
 
-		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'title','vtiger_notes',1,'2','notes_title','Title',1,0,'',100,1,17,1,'V~M',0,1,'BAS',0)");
+		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'title','vtiger_notes',1,'2','notes_title','Title',1,0,'',100,1,17,1,'V~M',0,1,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'createdtime','vtiger_crmentity',1,'70','createdtime','Created Time',1,0,'',100,5,17,2,'DT~O',3,null,'BAS',0)");
 		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'modifiedtime','vtiger_crmentity',1,'70','modifiedtime','Modified Time',1,0,'',100,6,17,2,'DT~O',3,null,'BAS',0)");
 		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'filename','vtiger_notes',1,'28','filename','File Name',1,2,'',100,3," . $fileblockid . ",1,'V~O',3,null,'BAS',0)");
-		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'smownerid','vtiger_crmentity',1,'53','assigned_user_id','Assigned To',1,0,'',100,4,17,1,'V~M',0,3,'BAS',0)");
-		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'notecontent','vtiger_notes',1,'19','notecontent','Note',1,2,'',100,1,$desc_blockid,1,'V~O',1,null,'BAS',0)");
-		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filetype','vtiger_notes',1,1,'filetype','File Type',1,2,'',100,5," . $fileblockid . ",2,'V~O',3,'','BAS',0)");
-		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filesize','vtiger_notes',1,1,'filesize','File Size',1,2,'',100,4," . $fileblockid . ",2,'I~O',3,'','BAS',0)");
-		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filelocationtype','vtiger_notes',1,27,'filelocationtype','Download Type',1,0,'',100,1," . $fileblockid . ",1,'V~O',3,'','BAS',0)");
-		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'fileversion','vtiger_notes',1,1,'fileversion','Version',1,2,'',100,6,$fileblockid,1,'V~O',1,'','BAS',0)");
-		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filestatus','vtiger_notes',1,56,'filestatus','Active',1,2,'',100,2," . $fileblockid . ",1,'V~O',1,'','BAS',0)");
-		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filedownloadcount','vtiger_notes',1,1,'filedownloadcount','Download Count',1,2,'',100,7," . $fileblockid . ",2,'I~O',3,'','BAS',0)");
-		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'folderid','vtiger_notes',1,26,'folderid','Folder Name',1,2,'',100,2,17,1,'V~O',2,2,'BAS',0)");
+		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'smownerid','vtiger_crmentity',1,'53','assigned_user_id','Assigned To',1,0,'',100,4,17,1,'V~M',0,3,'BAS',1)");
+		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'notecontent','vtiger_notes',1,'19','notecontent','Note',1,2,'',100,1,$desc_blockid,1,'V~O',1,null,'BAS',1)");
+		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filetype','vtiger_notes',1,1,'filetype','File Type',1,2,'',100,5," . $fileblockid . ",2,'V~O',3,NULL,'BAS',0)");
+		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filesize','vtiger_notes',1,1,'filesize','File Size',1,2,'',100,4," . $fileblockid . ",2,'I~O',3,NULL,'BAS',0)");
+		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filelocationtype','vtiger_notes',1,27,'filelocationtype','Download Type',1,0,'',100,1," . $fileblockid . ",1,'V~O',3,NULL,'BAS',0)");
+		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'fileversion','vtiger_notes',1,1,'fileversion','Version',1,2,'',100,6,$fileblockid,1,'V~O',1,NULL,'BAS',1)");
+		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filestatus','vtiger_notes',1,56,'filestatus','Active',1,2,'',100,2," . $fileblockid . ",1,'V~O',1,NULL,'BAS',1)");
+		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'filedownloadcount','vtiger_notes',1,1,'filedownloadcount','Download Count',1,2,'',100,7," . $fileblockid . ",2,'I~O',3,NULL,'BAS',0)");
+		$this->db->query("insert into vtiger_field values(8," . $this->db->getUniqueID("vtiger_field") . ",'folderid','vtiger_notes',1,26,'folderid','Folder Name',1,2,'',100,2,17,1,'V~O',2,2,'BAS',1)");
 
 		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'note_no','vtiger_notes',1,'4','note_no','Document No',1,0,'',100,3,17,1,'V~O',3,null,'BAS',0)");
 		$this->db->query("insert into vtiger_field values (8," . $this->db->getUniqueID("vtiger_field") . ",'modifiedby','vtiger_crmentity',1,'52','modifiedby','Last Modified By',1,0,'',100,12,17,3,'V~O',3,null,'BAS',0)");
@@ -501,8 +500,8 @@ class DefaultDataPopulator extends CRMEntity {
 		//Block21 -- Start
 
 		$this->db->query("insert into vtiger_field values (10," . $this->db->getUniqueID("vtiger_field") . ",'date_start','vtiger_activity',1,'6','date_start','Date & Time Sent',1,0,'',100,1,21,1,'DT~M~time_start~Time Start',1,null,'BAS',1)");
-		$this->db->query("insert into vtiger_field values (10," . $this->db->getUniqueID("vtiger_field") . ",'semodule','vtiger_activity',1,'2','parent_type','Sales Enity Module',1,0,'',100,2,21,3,'',1,null,'BAS',1)");
-		$this->db->query("insert into vtiger_field values (10," . $this->db->getUniqueID("vtiger_field") . ",'activitytype','vtiger_activity',1,'2','activitytype','Activtiy Type',1,0,'',100,3,21,3,'V~O',1,null,'BAS',1)");
+		$this->db->query("insert into vtiger_field values (10," . $this->db->getUniqueID("vtiger_field") . ",'semodule','vtiger_activity',1,'2','parent_type','Sales Entity Module',1,0,'',100,2,21,3,'',1,null,'BAS',1)");
+		$this->db->query("insert into vtiger_field values (10," . $this->db->getUniqueID("vtiger_field") . ",'activitytype','vtiger_activity',1,'2','activitytype','Activity Type',1,0,'',100,3,21,3,'V~O',1,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (10," . $this->db->getUniqueID("vtiger_field") . ",'smownerid','vtiger_crmentity',1,'53','assigned_user_id','Assigned To',1,0,'',100,5,21,1,'V~M',1,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (10," . $this->db->getUniqueID("vtiger_field") . ",'subject','vtiger_activity',1,'2','subject','Subject',1,0,'',100,1,23,1,'V~M',1,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (10," . $this->db->getUniqueID("vtiger_field") . ",'name','vtiger_attachments',1,'61','filename','Attachment',1,0,'',100,2,23,1,'V~O',1,null,'BAS',1)");
@@ -854,7 +853,7 @@ class DefaultDataPopulator extends CRMEntity {
 		$this->db->query("insert into vtiger_field values (23," . $this->db->getUniqueID("vtiger_field") . ",'taxtype','vtiger_invoice',1,'16','hdnTaxType','Tax Type',1,2,'',100,13,$invoicebasicblock,3,'V~O',3,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (23," . $this->db->getUniqueID("vtiger_field") . ",'discount_percent','vtiger_invoice',1,'1','hdnDiscountPercent','Discount Percent',1,2,'',100,13,$invoicebasicblock,3,'N~O',3,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (23," . $this->db->getUniqueID("vtiger_field") . ",'discount_amount','vtiger_invoice',1,'72','hdnDiscountAmount','Discount Amount',1,2,'',100,13,$invoicebasicblock,3,'N~O',3,null,'BAS',1)");
-		$this->db->query("insert into vtiger_field values (23," . $this->db->getUniqueID("vtiger_field") . ",'s_h_amount','vtiger_invoice',1,'72','hdnS_H_Amount','S&H Amount',1,2,'',100,14,57,3,'N~O',3,null,'BAS',1)");
+		$this->db->query("insert into vtiger_field values (23," . $this->db->getUniqueID("vtiger_field") . ",'s_h_amount','vtiger_invoice',1,'72','hdnS_H_Amount','S&H Amount',1,2,'',100,14,67,3,'N~O',3,null,'BAS',1)");
 
 		$this->db->query("insert into vtiger_field values (23," . $this->db->getUniqueID("vtiger_field") . ",'accountid','vtiger_invoice',1,'73','account_id','Account Name',1,2,'',100,14,$invoicebasicblock,1,'I~M',3,null,'BAS',1)");
 		$this->db->query("insert into vtiger_field values (23," . $this->db->getUniqueID("vtiger_field") . ",'invoicestatus','vtiger_invoice',1,'15','invoicestatus','Status',1,2,'',100,15,$invoicebasicblock,1,'V~O',3,null,'BAS',1)");
@@ -1859,9 +1858,9 @@ Should any need arise,please do give us a call.';
 
 		//Insert into vtiger_organizationdetails vtiger_table
 		$organizationId = $this->db->getUniqueID('vtiger_organizationdetails');
-		$this->db->query("insert into vtiger_organizationdetails(organization_id,organizationname,address,city,state,country,code,phone,fax,website,logoname)
-								values ($organizationId,'vtiger',' 40-41-42, Sivasundar Apartments, Flat D-II, Shastri Street, Velachery','Chennai',
-										'Tamil Nadu','India','600 042','+91-44-5202-1990','+91-44-5202-1990','www.vtiger.com','vtiger-crm-logo.gif')");
+		$this->db->query("insert into vtiger_organizationdetails(organization_id,organizationname,address,city,state,country,code,phone,fax,website,logoname,vatid)
+								values ($organizationId,'vtiger','95, 12th Main Road, 3rd Block, Rajajinagar','Bangalore',
+										'Karnataka','India','560010','+91 9243602352','+91 9243602352','www.vtiger.com','vtiger-crm-logo.png','1234-5678-9012')");
 
 
 		$this->db->query("insert into vtiger_actionmapping values(0,'Save',0)");
@@ -2285,7 +2284,7 @@ Should any need arise,please do give us a call.';
 			foreach ($uitypes as $uitype) {
 				$result = $this->db->pquery("insert into vtiger_ws_fieldtype(uitype,fieldtype) values(?,?)", array($uitype, $type));
 				if (!is_object($result)) {
-					"Query for fieldtype details($uitype:uitype,$type:fieldtype)";
+					echo "Query for fieldtype details($uitype:uitype,$type:fieldtype)";
 				}
 			}
 		}
@@ -2298,7 +2297,7 @@ Should any need arise,please do give us a call.';
 			"58" => array("Campaigns"), "73" => array("Accounts"), "75" => array("Vendors"), "76" => array("Potentials"),
 			"78" => array("Quotes"), "80" => array("SalesOrder"), "81" => array("Vendors"), "101" => array("Users"), "52" => array("Users"),
 			"357" => array("Contacts", "Accounts", "Leads", "Users", "Vendors"), "59" => array("Products"),
-			"66" => array("Leads", "Accounts", "Potentials", "HelpDesk"), "77" => array("Users"), "68" => array("Contacts", "Accounts"),
+			"66" => array("Leads", "Accounts", "Potentials", "HelpDesk", "Campaigns"), "77" => array("Users"), "68" => array("Contacts", "Accounts"),
 			"117" => array('Currency'), '26' => array('DocumentFolders'), '10' => array());
 
 		foreach ($referenceMapping as $uitype => $referenceArray) {
@@ -2395,36 +2394,34 @@ Should any need arise,please do give us a call.';
 			"ico-groups.gif",
 			"shareaccess.gif",
 			"orgshar.gif",
-			"audit.gif",
 			"set-IcoLoginHistory.gif",
 			"vtlib_modmng.gif",
 			"picklist.gif",
 			"picklistdependency.gif",
-			"ViewTemplate.gif",
-			"mailmarge.gif",
+			"menueditor.png",
 			"notification.gif",
 			"inventory.gif",
 			"company.gif",
 			"ogmailserver.gif",
-			"backupserver.gif",
 			"currency.gif",
 			"taxConfiguration.gif",
 			"system.gif",
-			"proxy.gif",
 			"announ.gif",
 			"set-IcoTwoTabConfig.gif",
 			"terms.gif",
 			"settingsInvNumber.gif",
 			"mailScanner.gif",
 			"settingsWorkflow.png",
-			"menueditor.png");
+			"migrate.gif",
+			"Cron.png");
 
 		//labels for blocks
-		$blocks = array('LBL_MODULE_MANAGER',
+		$blocks = array(
 			'LBL_USER_MANAGEMENT',
 			'LBL_STUDIO',
 			'LBL_COMMUNICATION_TEMPLATES',
-			'LBL_OTHER_SETTINGS');
+			'LBL_OTHER_SETTINGS'
+			);
 
 		//field names
 		$names = array('LBL_USERS',
@@ -2433,29 +2430,27 @@ Should any need arise,please do give us a call.';
 			'USERGROUPLIST',
 			'LBL_SHARING_ACCESS',
 			'LBL_FIELDS_ACCESS',
-			'LBL_AUDIT_TRAIL',
 			'LBL_LOGIN_HISTORY_DETAILS',
 			'VTLIB_LBL_MODULE_MANAGER',
 			'LBL_PICKLIST_EDITOR',
 			'LBL_PICKLIST_DEPENDENCY_SETUP',
-			'EMAILTEMPLATES',
-			'LBL_MAIL_MERGE',
+			'LBL_MENU_EDITOR',
 			'NOTIFICATIONSCHEDULERS',
 			'INVENTORYNOTIFICATION',
 			'LBL_COMPANY_DETAILS',
 			'LBL_MAIL_SERVER_SETTINGS',
-			'LBL_BACKUP_SERVER_SETTINGS',
 			'LBL_CURRENCY_SETTINGS',
 			'LBL_TAX_SETTINGS',
 			'LBL_SYSTEM_INFO',
-			'LBL_PROXY_SETTINGS',
 			'LBL_ANNOUNCEMENT',
 			'LBL_DEFAULT_MODULE_VIEW',
 			'INVENTORYTERMSANDCONDITIONS',
 			'LBL_CUSTOMIZE_MODENT_NUMBER',
 			'LBL_MAIL_SCANNER',
 			'LBL_LIST_WORKFLOWS',
-			'LBL_MENU_EDITOR');
+			'LBL_CONFIG_EDITOR',
+			'Scheduler'
+			);
 
 
 		$name_blocks = array('LBL_USERS' => 'LBL_USER_MANAGEMENT',
@@ -2464,29 +2459,27 @@ Should any need arise,please do give us a call.';
 			'USERGROUPLIST' => 'LBL_USER_MANAGEMENT',
 			'LBL_SHARING_ACCESS' => 'LBL_USER_MANAGEMENT',
 			'LBL_FIELDS_ACCESS' => 'LBL_USER_MANAGEMENT',
-			'LBL_AUDIT_TRAIL' => 'LBL_USER_MANAGEMENT',
 			'LBL_LOGIN_HISTORY_DETAILS' => 'LBL_USER_MANAGEMENT',
 			'VTLIB_LBL_MODULE_MANAGER' => 'LBL_STUDIO',
 			'LBL_PICKLIST_EDITOR' => 'LBL_STUDIO',
 			'LBL_PICKLIST_DEPENDENCY_SETUP' => 'LBL_STUDIO',
-			'EMAILTEMPLATES' => 'LBL_COMMUNICATION_TEMPLATES',
-			'LBL_MAIL_MERGE' => 'LBL_COMMUNICATION_TEMPLATES',
+			'LBL_MENU_EDITOR' => 'LBL_STUDIO',
 			'NOTIFICATIONSCHEDULERS' => 'LBL_COMMUNICATION_TEMPLATES',
 			'INVENTORYNOTIFICATION' => 'LBL_COMMUNICATION_TEMPLATES',
 			'LBL_COMPANY_DETAILS' => 'LBL_COMMUNICATION_TEMPLATES',
 			'LBL_MAIL_SERVER_SETTINGS' => 'LBL_OTHER_SETTINGS',
-			'LBL_BACKUP_SERVER_SETTINGS' => 'LBL_OTHER_SETTINGS',
 			'LBL_CURRENCY_SETTINGS' => 'LBL_OTHER_SETTINGS',
 			'LBL_TAX_SETTINGS' => 'LBL_OTHER_SETTINGS',
 			'LBL_SYSTEM_INFO' => 'LBL_OTHER_SETTINGS',
-			'LBL_PROXY_SETTINGS' => 'LBL_OTHER_SETTINGS',
 			'LBL_ANNOUNCEMENT' => 'LBL_OTHER_SETTINGS',
 			'LBL_DEFAULT_MODULE_VIEW' => 'LBL_OTHER_SETTINGS',
 			'INVENTORYTERMSANDCONDITIONS' => 'LBL_OTHER_SETTINGS',
 			'LBL_CUSTOMIZE_MODENT_NUMBER' => 'LBL_OTHER_SETTINGS',
 			'LBL_MAIL_SCANNER' => 'LBL_OTHER_SETTINGS',
 			'LBL_LIST_WORKFLOWS' => 'LBL_OTHER_SETTINGS',
-			'LBL_MENU_EDITOR' => 'LBL_STUDIO');
+			'LBL_CONFIG_EDITOR'=> 'LBL_OTHER_SETTINGS',
+			'Scheduler' => 'LBL_OTHER_SETTINGS'
+			);
 
 
 		//description for fields
@@ -2496,59 +2489,55 @@ Should any need arise,please do give us a call.';
 			'LBL_GROUP_DESCRIPTION',
 			'LBL_SHARING_ACCESS_DESCRIPTION',
 			'LBL_SHARING_FIELDS_DESCRIPTION',
-			'LBL_AUDIT_DESCRIPTION',
 			'LBL_LOGIN_HISTORY_DESCRIPTION',
 			'VTLIB_LBL_MODULE_MANAGER_DESCRIPTION',
 			'LBL_PICKLIST_DESCRIPTION',
 			'LBL_PICKLIST_DEPENDENCY_DESCRIPTION',
-			'LBL_EMAIL_TEMPLATE_DESCRIPTION',
-			'LBL_MAIL_MERGE_DESCRIPTION',
+			'LBL_MENU_DESC',
 			'LBL_NOTIF_SCHED_DESCRIPTION',
 			'LBL_INV_NOTIF_DESCRIPTION',
 			'LBL_COMPANY_DESCRIPTION',
 			'LBL_MAIL_SERVER_DESCRIPTION',
-			'LBL_BACKUP_SERVER_DESCRIPTION',
 			'LBL_CURRENCY_DESCRIPTION',
 			'LBL_TAX_DESCRIPTION',
 			'LBL_SYSTEM_DESCRIPTION',
-			'LBL_PROXY_DESCRIPTION',
 			'LBL_ANNOUNCEMENT_DESCRIPTION',
 			'LBL_DEFAULT_MODULE_VIEW_DESC',
 			'LBL_INV_TANDC_DESCRIPTION',
 			'LBL_CUSTOMIZE_MODENT_NUMBER_DESCRIPTION',
 			'LBL_MAIL_SCANNER_DESCRIPTION',
 			'LBL_LIST_WORKFLOWS_DESCRIPTION',
-			'LBL_MENU_DESC');
+			'LBL_CONFIG_EDITOR_DESCRIPTION',
+			'Allows you to Configure Cron Task');
 
-		$links = array('index.php?module=Administration&action=index&parenttab=Settings',
-			'index.php?module=Settings&action=listroles&parenttab=Settings',
-			'index.php?module=Settings&action=ListProfiles&parenttab=Settings',
-			'index.php?module=Settings&action=listgroups&parenttab=Settings',
-			'index.php?module=Settings&action=OrgSharingDetailView&parenttab=Settings',
-			'index.php?module=Settings&action=DefaultFieldPermissions&parenttab=Settings',
-			'index.php?module=Settings&action=AuditTrailList&parenttab=Settings',
-			'index.php?module=Settings&action=ListLoginHistory&parenttab=Settings',
-			'index.php?module=Settings&action=ModuleManager&parenttab=Settings',
-			'index.php?module=PickList&action=PickList&parenttab=Settings',
-			'index.php?module=PickList&action=PickListDependencySetup&parenttab=Settings',
-			'index.php?module=Settings&action=listemailtemplates&parenttab=Settings',
-			'index.php?module=Settings&action=listwordtemplates&parenttab=Settings',
-			'index.php?module=Settings&action=listnotificationschedulers&parenttab=Settings',
-			'index.php?module=Settings&action=listinventorynotifications&parenttab=Settings',
-			'index.php?module=Settings&action=OrganizationConfig&parenttab=Settings',
-			'index.php?module=Settings&action=EmailConfig&parenttab=Settings',
-			'index.php?module=Settings&action=BackupServerConfig&parenttab=Settings',
-			'index.php?module=Settings&action=CurrencyListView&parenttab=Settings',
-			'index.php?module=Settings&action=TaxConfig&parenttab=Settings',
-			'index.php?module=System&action=listsysconfig&parenttab=Settings',
-			'index.php?module=Settings&action=ProxyServerConfig&parenttab=Settings',
-			'index.php?module=Settings&action=Announcements&parenttab=Settings',
+		$links = array(
+			'index.php?module=Users&parent=Settings&view=List',
+			'index.php?module=Roles&parent=Settings&view=Index',
+			'index.php?module=Profiles&parent=Settings&view=List',
+			'index.php?module=Groups&parent=Settings&view=List',
+			'index.php?module=SharingAccess&parent=Settings&view=Index',
+			'index.php?module=FieldAccess&parent=Settings&view=Index',
+			'index.php?module=LoginHistory&parent=Settings&view=List',
+			'index.php?module=ModuleManager&parent=Settings&view=List',
+			'index.php?parent=Settings&module=Picklist&view=Index',
+			'index.php?parent=Settings&module=PickListDependency&view=List',
+			'index.php?module=MenuEditor&parent=Settings&view=Index',
+			'index.php?module=Settings&view=listnotificationschedulers&parenttab=Settings',
+			'index.php?module=Settings&view=listinventorynotifications&parenttab=Settings',
+			'index.php?parent=Settings&module=Vtiger&view=CompanyDetails',
+			'index.php?parent=Settings&module=Vtiger&view=OutgoingServerDetail',
+			'index.php?parent=Settings&module=Currency&view=List',
+			'index.php?module=Vtiger&parent=Settings&view=TaxIndex',
+			'index.php?module=Settings&submodule=Server&view=ProxyConfig',
+			'index.php?parent=Settings&module=Vtiger&view=AnnouncementEdit',
 			'index.php?module=Settings&action=DefModuleView&parenttab=Settings',
-			'index.php?module=Settings&action=OrganizationTermsandConditions&parenttab=Settings',
-			'index.php?module=Settings&action=CustomModEntityNo&parenttab=Settings',
-			'index.php?module=Settings&action=MailScanner&parenttab=Settings',
-			'index.php?module=com_vtiger_workflow&action=workflowlist&parenttab=Settings',
-			'index.php?module=Settings&action=MenuEditor&parenttab=Settings');
+			'index.php?parent=Settings&module=Vtiger&view=TermsAndConditionsEdit',
+			'index.php?module=Vtiger&parent=Settings&view=CustomRecordNumbering',
+			'index.php?parent=Settings&module=MailConverter&view=List',
+			'index.php?module=Workflows&parent=Settings&view=List',
+			'index.php?module=Vtiger&parent=Settings&view=ConfigEditorDetail',
+			'index.php?module=CronTasks&parent=Settings&view=List'
+			);
 
 		//insert settings blocks
 		$count = count($blocks);
@@ -2566,7 +2555,7 @@ Should any need arise,please do give us a call.';
 		}
 
 		// for Workflow in settings page of every module
-		$module_manager_id = getSettingsBlockId('LBL_MODULE_MANAGER');
+		$module_manager_id = getSettingsBlockId('LBL_OTHER_SETTINGS');
 		$result = $adb->pquery("SELECT max(sequence) AS maxseq FROM vtiger_settings_field WHERE blockid = ?", array($module_manager_id));
 		$maxseq = $adb->query_result($result, 0, 'maxseq');
 		if ($maxseq < 0 || $maxseq == NULL) {
@@ -2631,5 +2620,4 @@ Should any need arise,please do give us a call.';
 	}
 
 }
-
 ?>

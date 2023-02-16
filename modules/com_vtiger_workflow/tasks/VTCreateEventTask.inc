@@ -23,17 +23,17 @@ require_once("modules/Users/Users.php");
 
 class VTCreateEventTask extends VTTask{
 	public $executeImmediately = true;
-	
+
 	public function getFieldNames(){
-		return array('eventType', 'eventName', 'description', 'sendNotification', 
-								 'startTime', 'startDays', 'startDirection', 'startDatefield', 
+		return array('eventType', 'eventName', 'description', 'sendNotification',
+								 'startTime', 'startDays', 'startDirection', 'startDatefield',
 								 'endTime','endDays', 'endDirection', 'endDatefield',
 								 'status', 'priority','recurringcheck','repeat_frequency',
 								 'recurringtype','calendar_repeat_limit_date',
 								 'mon_flag','tue_flag','wed_flag','thu_flag','fri_flag','sat_flag','sun_flag',
-								 'repeatMonth','repeatMonth_date','repeatMonth_daytype','repeatMonth_day');
+								 'repeatMonth','repeatMonth_date','repeatMonth_daytype','repeatMonth_day', 'assigned_user_id');
 	}
-	
+
 	function getAdmin(){
 		$user = Users::getActiveAdminUser();
 		global $current_user;
@@ -41,7 +41,7 @@ class VTCreateEventTask extends VTTask{
 		$current_user = $user;
 		return $user;
 	}
-	
+
 	public function doTask($entityData){
 		if(!vtlib_isModuleActive('Calendar')) {
 			return;
@@ -55,10 +55,25 @@ class VTCreateEventTask extends VTTask{
 		$moduleName = $entityData->getModuleName();
 		$adminUser = $this->getAdmin();
 
-		$startDate = $this->calculateDate($entityData, $this->startDays, 
+		$startDate = $this->calculateDate($entityData, $this->startDays,
 															$this->startDirection, $this->startDatefield);
-		$endDate = $this->calculateDate($entityData, $this->endDays, 
+		$endDate = $this->calculateDate($entityData, $this->endDays,
 															$this->endDirection, $this->endDatefield);
+
+		// Added to check if the user/group is active
+		if(!empty($this->assigned_user_id)) {
+			$userExists = $adb->pquery('SELECT 1 FROM vtiger_users WHERE id = ? AND status = ?', array($this->assigned_user_id, 'Active'));
+			if($adb->num_rows($userExists)) {
+				$assignedUserId = vtws_getWebserviceEntityId('Users', $this->assigned_user_id);
+				$userId = $assignedUserId;
+			} else {
+				$groupExist = $adb->pquery('SELECT 1 FROM vtiger_groups WHERE groupid = ?', array($this->assigned_user_id));
+				if($adb->num_rows($groupExist)) {
+					$assignedGroupId = vtws_getWebserviceEntityId('Groups', $this->assigned_user_id);
+					$userId = $assignedGroupId;
+				}
+			}
+		}
 
 		$fields = array(
 			'activitytype'=>$this->eventType,
@@ -67,19 +82,26 @@ class VTCreateEventTask extends VTTask{
 			'taskpriority'=>$this->priority,
 			'eventstatus'=>$this->status,
 			'assigned_user_id'=>$userId,
-			'time_start'=>self::conv12to24hour($this->startTime),
-			'date_start'=> DateTimeField::convertToUserFormat($startDate),
-			'time_end'=>self::conv12to24hour($this->endTime),
-			'due_date'=>DateTimeField::convertToUserFormat($endDate),
-			'visibility'=>'Private',
+			'time_start'=>self::convertToDBFormat($this->startTime),
+			'date_start'=> $startDate,
+			'time_end'=>self::convertToDBFormat($this->endTime),
+			'due_date'=>$endDate,
 			'taskstatus'=>'',
 			'duration_hours'=>'0'
 		);
 		
+		//Setting visibility value
+		$assignedTo = explode('x', $userId);
+		$sharedType = Calendar_Module_Model::getSharedType($assignedTo[1]);
+		if($sharedType == 'selectedusers' || empty($sharedType)) {
+			$sharedType = 'public';
+		}
+		$fields['visibility'] = ucfirst($sharedType);
+		
 		$id = $entityData->getId();
 		if($moduleName=='Contacts'){
 			$fields['contact_id'] = $id;
-		}else{ 
+		}else{
 			$data = vtws_describe('Calendar', $adminUser);
 			$fieldInfo = $data['fields'];
 			foreach($fieldInfo as $field){
@@ -88,13 +110,18 @@ class VTCreateEventTask extends VTTask{
 				}
 			}
 			$refersTo = $parentIdField['type']['refersTo'];
-			
+
 			if(in_array($moduleName, $refersTo)){
 				$fields['parent_id'] = $id;
 			}
 		}
-		
+
 		$event = vtws_create('Events', $fields, $adminUser);
+		$eventIdDetails = vtws_getIdComponents($event['id']);
+		$entityIdDetails = vtws_getIdComponents($id);
+
+		relateEntities(CRMEntity::getInstance($moduleName), $moduleName, $entityIdDetails[1], 'Calendar', $eventIdDetails[1]);
+
 		$handler = vtws_getModuleHandlerFromName('Events', $adminUser);
 		$meta = $handler->getMeta();
 		$recordValues = DataTransform::sanitizeForInsert($event,$meta);
@@ -102,12 +129,12 @@ class VTCreateEventTask extends VTTask{
 		$event = CRMEntity::getInstance('Events');
 		$event->id = $id;
 		$event->column_fields = $recordValues;
-		
+
 		if($this->recurringcheck && !empty($startDate) &&
 				($this->calendar_repeat_limit_date)) {
 
 			$resultRow = array();
-			
+
 			$resultRow['date_start'] = $startDate;
 			$resultRow['time_start'] = self::conv12to24hour($this->startTime);
 			$resultRow['due_date'] = $this->calendar_repeat_limit_date;
@@ -154,10 +181,19 @@ class VTCreateEventTask extends VTTask{
 				}
 			}
 			$resultRow['recurringinfo'] = $recurringInfo;
+	
+			// Added this to relate these events to parent module.
+			$_REQUEST['createmode'] = 'link';
+			$_REQUEST['return_module'] = $moduleName;
+			$_REQUEST['return_id'] = $entityIdDetails[1];
+
 			$recurObj = RecurringType::fromDBRequest($resultRow);
 
 			include_once 'modules/Calendar/RepeatEvents.php';
 			Calendar_RepeatEvents::repeat($event, $recurObj);
+
+			$_REQUEST['createmode'] = '';
+
 		}
 		global $current_user;
 		$current_user = $this->originalUser;
@@ -174,10 +210,22 @@ class VTCreateEventTask extends VTTask{
 		preg_match('/\d\d\d\d-\d\d-\d\d/', $baseDate, $match);
 		$baseDate = strtotime($match[0]);
 		$date = strftime('%Y-%m-%d', $baseDate+$days*24*60*60*
-										 ($direction=='Before'?-1:1));
+										 (strtolower($direction)=='before'?-1:1));
 		return $date;
 	}
 
+    /**
+     * To convert time_start & time_end values to db format
+     * @param type $timeStr
+     * @return time
+     */
+    static function convertToDBFormat($timeStr){
+        $date = new DateTime();
+        $time = Vtiger_Time_UIType::getTimeValueWithSeconds($timeStr);
+        $dbInsertDateTime = DateTimeField::convertToDBTimeZone($date->format('Y-m-d').' '.$time);
+        return $dbInsertDateTime->format('H:i:s');
+    }
+    
 	static function conv12to24hour($timeStr){
 		$arr = array();
 		preg_match('/(\d{1,2}):(\d{1,2})(am|pm)/', $timeStr, $arr);

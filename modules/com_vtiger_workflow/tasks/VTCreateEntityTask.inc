@@ -32,7 +32,7 @@ class VTCreateEntityTask extends VTTask {
 		if(!vtlib_isModuleActive($entityType)) {
 			return;
 		}
-
+        
 		$fieldValueMapping = array();
 		if (!empty($this->field_value_mapping)) {
 			$fieldValueMapping = Zend_Json::decode($this->field_value_mapping);
@@ -100,7 +100,11 @@ class VTCreateEntityTask extends VTTask {
 				$newEntity->column_fields[$fieldName] = $fieldValue;
 			}
 			$newEntity->column_fields[$this->reference_field] = $focus->id;
+			// To handle cyclic process
+			$newEntity->_from_workflow = true;
+            
 			$newEntity->save($entityType);
+			relateEntities($focus, $moduleName, $recordId, $entityType, $newEntity->id);
 		}
 
 		$util->revertUser();

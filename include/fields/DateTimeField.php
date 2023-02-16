@@ -65,6 +65,9 @@ class DateTimeField {
 		return $this->getDisplayDate($user) . ' ' . $this->getDisplayTime($user);
 	}
 
+    public function getFullcalenderDateTimevalue ($user = null) {
+		return $this->getDisplayDate($user) . ' ' . $this->getFullcalenderTime($user);
+	}
 	/**
 	 *
 	 * @global Users $current_user
@@ -138,7 +141,7 @@ class DateTimeField {
 		if(empty($user)) {
 			$user = $current_user;
 		}
-		$format = $current_user->date_format;
+		$format = $user->date_format;
 		if(empty($format)) {
 			$format = 'dd-mm-yyyy';
 		}
@@ -177,11 +180,11 @@ class DateTimeField {
 	 * @param Users $user
 	 */
 	public static function convertToUserTimeZone($value, $user = null ) {
-		global $current_user;
+		global $current_user, $default_timezone;
 		if(empty($user)) {
 			$user = $current_user;
 		}
-		$timeZone = $user->time_zone;
+		$timeZone = $user->time_zone ? $user->time_zone : $default_timezone;
 		return DateTimeField::convertTimeZone($value, self::getDBTimeZone(), $timeZone);
 	}
 
@@ -192,11 +195,11 @@ class DateTimeField {
 	 * @param Users $user
 	 */
 	public static function convertToDBTimeZone( $value, $user = null ) {
-		global $current_user;
+		global $current_user, $default_timezone;
 		if(empty($user)) {
 			$user = $current_user;
 		}
-		$timeZone = $user->time_zone;
+		$timeZone = $user->time_zone ? $user->time_zone : $default_timezone;
 		$value = self::sanitizeDate($value, $user);
 		return DateTimeField::convertTimeZone($value, $timeZone, self::getDBTimeZone() );
 	}
@@ -254,7 +257,7 @@ class DateTimeField {
 			$date_value = $date->format('Y-m-d');
 		}
 
-		$display_date = self::convertToUserFormat($date_value);
+		$display_date = self::convertToUserFormat($date_value, $user);
 		$log->debug("Exiting getDisplayDate method ...");
 		return $display_date;
 	}
@@ -265,7 +268,22 @@ class DateTimeField {
 		$date = self::convertToUserTimeZone($this->datetime, $user);
 		$time = $date->format("H:i:s");
 		$log->debug("Exiting getDisplayTime method ...");
+        
+        //Convert time to user preferred value
+                $userModel = Users_Privileges_Model::getCurrentUserModel();
+                if($userModel->get('hour_format') == '12'){
+                        $time = Vtiger_Time_UIType::getTimeValueInAMorPM($time);
+                }
 		return $time;
+	}
+    
+     function getFullcalenderTime( $user = null ) {
+		global $log;
+		$log->debug("Entering getDisplayTime(" . $this->datetime . ") method ...");
+		$date = self::convertToUserTimeZone($this->datetime, $user);
+		$time = $date->format("H:i:s");
+		$log->debug("Exiting getDisplayTime method ...");
+        return $time;
 	}
 
 	static function getDBTimeZone() {
