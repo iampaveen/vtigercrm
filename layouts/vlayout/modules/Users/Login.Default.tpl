@@ -100,7 +100,7 @@
 									<div class="login-area">
 										<div class="login-box" id="loginDiv">
 											<div class="">
-												<h3 class="login-header">paveen  Vtiger CRM</h3>
+												<h3 class="login-header">Login to Vtiger CRM</h3>
 		</div>
 											<form class="form-horizontal login-form" style="margin:0;" action="index.php?module=Users&action=Login" method="POST">
 			{if isset($smarty.request.error)}
